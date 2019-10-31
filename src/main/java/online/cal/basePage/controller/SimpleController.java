@@ -21,6 +21,12 @@ public class SimpleController implements ErrorController
 		return wrapHTML("<p>Give 'em the <b style='color:#ff0000'>BOOT</b>! The roots, the radicals</p>");
 	}
 	
+	@RequestMapping("/test")
+	public String test()
+	{
+		return wrapHTML("<p>Should see this</p>");
+	}
+	
 	private String wrapHTML(String body)
 	{
 		return "<html><head><title>Boot</title></head><body>" + body + "</body></html>";

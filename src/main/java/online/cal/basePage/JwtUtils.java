@@ -63,6 +63,19 @@ public class JwtUtils
             setAuthenticationManager(new AuthProvider());
             
         }
+        
+        protected boolean requiresAuthentication(HttpServletRequest request,
+    			HttpServletResponse response) {
+        	String url = request.getServletPath();
+
+    		if (request.getPathInfo() != null) {
+    			url += request.getPathInfo();
+    		}
+            System.out.println("requireAuth for " + url + " ?");
+    		boolean b = super.requiresAuthentication(request, response);
+            System.out.println("requireAuth for " + url + " ? = " + b);
+            return b;
+    	}
 
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
