@@ -49,7 +49,7 @@ public class SimpleController implements ErrorController
 		  }
 		  if (statusCode == HttpStatus.UNAUTHORIZED_401)
 		  {
-			  return "error-401 - Who are you?";
+			  return "Unable to authenticate. Please log in again";
 		  }
           return "error-" + status;
 	  }

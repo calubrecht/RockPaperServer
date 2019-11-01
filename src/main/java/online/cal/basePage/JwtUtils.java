@@ -19,6 +19,7 @@ import org.springframework.security.web.util.matcher.*;
 
 import com.auth0.jwt.*;
 import com.auth0.jwt.algorithms.*;
+import com.auth0.jwt.exceptions.*;
 import com.auth0.jwt.interfaces.*;
 
 import online.cal.basePage.model.*;
@@ -26,6 +27,8 @@ import online.cal.basePage.model.*;
 public class JwtUtils
 {
 	private static Algorithm ALGO;
+	
+	private static final long TOKEN_LENGTH = 60 * 60; 
 	
 	private static Algorithm getAlgo()
 	{
@@ -63,19 +66,6 @@ public class JwtUtils
             setAuthenticationManager(new AuthProvider());
             
         }
-        
-        protected boolean requiresAuthentication(HttpServletRequest request,
-    			HttpServletResponse response) {
-        	String url = request.getServletPath();
-
-    		if (request.getPathInfo() != null) {
-    			url += request.getPathInfo();
-    		}
-            System.out.println("requireAuth for " + url + " ?");
-    		boolean b = super.requiresAuthentication(request, response);
-            System.out.println("requireAuth for " + url + " ? = " + b);
-            return b;
-    	}
 
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -88,9 +78,16 @@ public class JwtUtils
 
             String authToken = header.substring(7);
 
-            JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken);
+            try
+            {
+              JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken);
 
-            return getAuthenticationManager().authenticate(authRequest);
+              return getAuthenticationManager().authenticate(authRequest);
+            }
+            catch (TokenExpiredException tee)
+            {
+            	throw new JwtTokenExpiredException("Your session has expired. Please log in again");
+            }
         }
 
         @Override
@@ -148,7 +145,7 @@ public class JwtUtils
     	return JWT.create().
     	  withIssuer("BasePagePlus").
     	  withSubject(userName).
-    	  withExpiresAt(Date.from(new Date().toInstant().plusSeconds(60 *60))).sign(getAlgo()); // Expires in 1 hour
+    	  withExpiresAt(Date.from(new Date().toInstant().plusSeconds(TOKEN_LENGTH))).sign(getAlgo()); // Expires in 1 hour
     }
     
     public static class JwtTokenMissingException extends AuthenticationException {
@@ -158,6 +155,14 @@ public class JwtUtils
 		{
 			super(msg);
 		}}
+    
+    public static class JwtTokenExpiredException extends AuthenticationException {
+  		private static final long serialVersionUID = 1L;
+
+  		public JwtTokenExpiredException(String msg)
+  		{
+  			super(msg);
+  		}}
     
     
     public static class JwtAuthenticationToken implements Authentication
