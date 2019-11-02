@@ -2,15 +2,17 @@ package online.cal.basePage.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.*;
+
 public class ChatMessage
 {
-    private String userName_;
-    private String chatText_;
+    @JsonProperty("userName") private String userName_;
+    @JsonProperty("chatText") private String chatText_;
     
-    public ChatMessage()
+  /*  public ChatMessage()
     {
     	
-    }
+    }*/
     
     public ChatMessage(String userName, String chatText)
     {
@@ -47,7 +49,22 @@ public class ChatMessage
 		return Collections.unmodifiableList(chatStore_);
 	}
 	
+	public static void addChat(ChatMessage cm)
+	{
+		chatStore_.add(cm);
+	}
+	
+	static
 	{
 		// Need to initialize some until 
+		chatStore_ = new ArrayList<ChatMessage>(Arrays.asList(new ChatMessage[]{
+			new ChatMessage("#system#", "<luser> has entered"),
+			new ChatMessage("luser", "Hey all!"),
+			new ChatMessage("#system#", "<bozo> has entered"),
+			new ChatMessage("luser", "Hey, bozo"),
+			new ChatMessage("bozo", "Hey, l. Want a game?"),
+			new ChatMessage("#system#", "<spongey> has entered"),
+			new ChatMessage("#system#", "<spongey> has left"),
+			new ChatMessage("#system#", "<bozo> has invited you to a game")}));
 	}
 }

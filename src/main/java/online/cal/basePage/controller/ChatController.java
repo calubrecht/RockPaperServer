@@ -2,6 +2,8 @@ package online.cal.basePage.controller;
 
 import java.util.*;
 
+import org.springframework.security.core.*;
+import org.springframework.security.core.context.*;
 import org.springframework.web.bind.annotation.*;
 
 import online.cal.basePage.*;
@@ -13,10 +15,21 @@ public class ChatController
 {
 	public static final String CHAT = "chat/";
 	
-	@RequestMapping(value=CHAT, method =RequestMethod.GET)
+	@RequestMapping(value=CHAT + "chats", method =RequestMethod.GET)
 	public List<ChatMessage> getChats()
 	{
 		return ChatMessage.getChatMessages();
+			
+	}
+	
+	@RequestMapping(value=CHAT + "chat", method =RequestMethod.POST)
+	public ChatMessage addChat(@RequestBody ChatMessage cm)
+	{
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String userName = auth.getName();
+		ChatMessage postMessage = new ChatMessage(userName, cm.getChatText());
+		ChatMessage.addChat(postMessage);
+		return postMessage;
 			
 	}
 	
