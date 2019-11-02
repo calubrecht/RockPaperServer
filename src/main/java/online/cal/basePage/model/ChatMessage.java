@@ -1,6 +1,7 @@
 package online.cal.basePage.model;
 
 import java.util.*;
+import java.util.stream.*;
 
 import com.fasterxml.jackson.annotation.*;
 
@@ -8,6 +9,7 @@ public class ChatMessage
 {
     @JsonProperty("userName") private String userName_;
     @JsonProperty("chatText") private String chatText_;
+    @JsonProperty("msgID") private long msgID_;
     
   /*  public ChatMessage()
     {
@@ -40,6 +42,16 @@ public class ChatMessage
 		chatText_ = chatText;
 	}
 	
+	public long getMsgID()
+	{
+		return msgID_;
+	}
+
+	protected void setMsgID(long index)
+	{
+		msgID_ = index;
+	}
+	
 	/**
 	 * Chat Store, replace with more permanent
 	 */
@@ -49,11 +61,17 @@ public class ChatMessage
 		return Collections.unmodifiableList(chatStore_);
 	}
 	
-	public static void addChat(ChatMessage cm)
+	public static List<ChatMessage> getChatMessagesSince(Long id)
 	{
-		chatStore_.add(cm);
+		return getChatMessages().stream().filter(cm -> cm.getMsgID() > id).collect(Collectors.toList());
 	}
 	
+	public synchronized static void addChat(ChatMessage cm)
+	{
+		cm.setMsgID(chatStore_.size());
+		chatStore_.add(cm);
+	}
+
 	static
 	{
 		// Need to initialize some until 
@@ -66,5 +84,9 @@ public class ChatMessage
 			new ChatMessage("#system#", "<spongey> has entered"),
 			new ChatMessage("#system#", "<spongey> has left"),
 			new ChatMessage("#system#", "<bozo> has invited you to a game")}));
+		for (int i = 0; i < chatStore_.size(); i++)
+		{
+			chatStore_.get(i).setMsgID(i);
+		}
 	}
 }
