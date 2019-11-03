@@ -18,14 +18,14 @@ public class ChatController
 	@RequestMapping(value=CHAT + "chats", method =RequestMethod.GET)
 	public List<ChatMessage> getChats()
 	{
-		return ChatMessage.getChatMessages();
+		return ChatStore.getInstance().getChatMessages();
 			
 	}
 	
 	@RequestMapping(value=CHAT + "chatsSince/{id}", method =RequestMethod.GET)
 	public PollResult<List<ChatMessage>> getChatsSince(@PathVariable Long id)
 	{
-		List<ChatMessage> chats = ChatMessage.getChatMessagesSince(id);
+		List<ChatMessage> chats = ChatStore.getInstance().getChatMessagesSince(id);
 		if (chats.isEmpty())
 		{
 			return new PollResult<List<ChatMessage>>(id, chats);
@@ -40,7 +40,7 @@ public class ChatController
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String userName = auth.getName();
 		ChatMessage postMessage = new ChatMessage(userName, cm.getChatText());
-		ChatMessage.addChat(postMessage);
+		ChatStore.getInstance().addChat(postMessage);
 		return postMessage;
 			
 	}

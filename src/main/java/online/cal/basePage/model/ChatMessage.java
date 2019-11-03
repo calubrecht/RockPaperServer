@@ -51,42 +51,4 @@ public class ChatMessage
 	{
 		msgID_ = index;
 	}
-	
-	/**
-	 * Chat Store, replace with more permanent
-	 */
-	private static List<ChatMessage> chatStore_ = new ArrayList<ChatMessage>();
-	public static List<ChatMessage> getChatMessages()
-	{
-		return Collections.unmodifiableList(chatStore_);
-	}
-	
-	public static List<ChatMessage> getChatMessagesSince(Long id)
-	{
-		return getChatMessages().stream().filter(cm -> cm.getMsgID() > id).collect(Collectors.toList());
-	}
-	
-	public synchronized static void addChat(ChatMessage cm)
-	{
-		cm.setMsgID(chatStore_.size());
-		chatStore_.add(cm);
-	}
-
-	static
-	{
-		// Need to initialize some until 
-		chatStore_ = new ArrayList<ChatMessage>(Arrays.asList(new ChatMessage[]{
-			new ChatMessage("#system#", "<luser> has entered"),
-			new ChatMessage("luser", "Hey all!"),
-			new ChatMessage("#system#", "<bozo> has entered"),
-			new ChatMessage("luser", "Hey, bozo"),
-			new ChatMessage("bozo", "Hey, l. Want a game?"),
-			new ChatMessage("#system#", "<spongey> has entered"),
-			new ChatMessage("#system#", "<spongey> has left"),
-			new ChatMessage("#system#", "<bozo> has invited you to a game")}));
-		for (int i = 0; i < chatStore_.size(); i++)
-		{
-			chatStore_.get(i).setMsgID(i);
-		}
-	}
 }
