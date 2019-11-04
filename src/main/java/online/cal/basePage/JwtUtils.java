@@ -55,16 +55,24 @@ public class JwtUtils
 		public JwtAuthenticationFilter()
 		{
 			super(new NegatedRequestMatcher(
-					new OrRequestMatcher(new AntPathRequestMatcher("/**", HttpMethod.OPTIONS.asString()), // Ignore
-																											// authentication
-																											// for CORS
-																											// requests
-							new AntPathRequestMatcher("/api/v1/sessions/login"), new AntPathRequestMatcher("/error"),
-							new AntPathRequestMatcher("/lyrics"))));
+					new OrRequestMatcher(
+					  new AntPathRequestMatcher("/**", HttpMethod.OPTIONS.asString()), // Ignore authentication for CORS requests
+					  new AntPathRequestMatcher("/api/v1/sessions/login"),
+					  new AntPathRequestMatcher("/error"),
+					  new AntPathRequestMatcher("/socket/**"),
+					  new AntPathRequestMatcher("/lyrics"))));
 			setAuthenticationSuccessHandler(new JwtAuthenticationSuccessHandler());
 			setAuthenticationManager(new AuthProvider());
 
 		}
+		
+		
+		protected boolean requiresAuthentication(HttpServletRequest request,
+				HttpServletResponse response) {
+			return super.requiresAuthentication(request, response);
+		}
+		
+		
 
 		@Override
 		public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)

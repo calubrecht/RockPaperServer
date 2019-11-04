@@ -3,15 +3,11 @@ package online.cal.basePage.model;
 import java.util.*;
 import java.util.stream.*;
 
+import org.springframework.stereotype.*;
+
+@Component("chatStore")
 public class ChatStore
-{
-	static ChatStore instance_ = new ChatStore();
-	
-	public static ChatStore getInstance()
-	{
-		return instance_;
-	}
-	
+{	
 	public ChatStore()
 	{
 		ChatMessage[] messages = new ChatMessage[]{
