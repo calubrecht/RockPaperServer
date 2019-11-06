@@ -156,7 +156,7 @@ public class JwtUtils
 				throw new JwtTokenMissingException("Unknown Authentication");
 			}
 			JwtAuthenticationToken token = (JwtAuthenticationToken) authentication;
-			// Check expiry...
+			token.validate();
 			return token;
 		}
 	}
