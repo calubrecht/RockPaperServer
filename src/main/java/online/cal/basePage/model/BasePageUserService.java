@@ -13,6 +13,8 @@ import org.springframework.security.core.userdetails.*;
 import org.springframework.security.provisioning.*;
 import org.springframework.security.web.context.*;
 
+import com.fasterxml.jackson.annotation.*;
+
 import online.cal.basePage.*;
 
 public class BasePageUserService
@@ -20,6 +22,8 @@ public class BasePageUserService
 	static BasePageUserService INSTANCE;
 	WebSecurityConfig securityService_;
 	Map<String, BasePageUser> users_ = new HashMap<String, BasePageUser>();
+	
+	int guestCount = 0;
 	
 	UserDetailsService service_ = new InMemoryUserDetailsManager(
 			
@@ -51,14 +55,23 @@ public class BasePageUserService
 		return service_;
 	}
 
-	public String login(String user, String pass)
+	public UserMessage login(String user, String pass)
 	{
 	   BasePageUser bpu = getUser(user);
-	   if (bpu != null && pass.equals(bpu.getPassword()))
+	   if (bpu != null && !pass.equals("") && pass.equals(bpu.getPassword()))
 	   {
-		   return JwtUtils.generateToken(user);
+		   String tok = JwtUtils.generateToken(user);
+		   return new UserMessage(user, tok);
 	   }
 	   throw new BPUAuthenticationException("Bad user or password");
+	}
+	
+	public UserMessage createGuest()
+	{
+	  String name = "Guest-" + ++guestCount;
+	  BasePageUser bpu = new BasePageUser(name, "");
+	  users_.put(name, bpu);
+	  return new UserMessage(name, JwtUtils.generateToken(name));
 	}
 	
 	BasePageUser getUser(String name)
@@ -71,6 +84,19 @@ public class BasePageUserService
 		public BPUAuthenticationException(String err)
 		{
 			super(err);
+		}
+	}
+	
+	
+	public static class UserMessage
+	{
+		@JsonProperty("userName") public String userName_;
+		@JsonProperty("token") public String token_;
+		
+		public UserMessage(String userName, String token)
+		{
+			userName_ = userName;
+			token_ = token;
 		}
 	}
 }
