@@ -19,6 +19,6 @@ public class DeployConfiguration
     
     public String getGUIDeployURL()
     {
-    	return "http://triklops:4200";
+    	return "http://triklops:4200";  // TODO: Should be configurable.
     }
 }

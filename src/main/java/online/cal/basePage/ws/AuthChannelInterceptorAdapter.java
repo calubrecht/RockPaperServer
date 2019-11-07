@@ -29,9 +29,6 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
             final String token = accessor.getFirstNativeHeader("Authorization");
             if (token == null)
             {
-            	 System.out.println(
- 	    	    		"WS connect from missing token - " + accessor.getSessionId());
- 	    	    	//	accessor.getNativeHeader("destination") + "-" + accessor.getHeader("lookupDestination"));
             	// No auth token, refuse connection
             	return null;
             }
@@ -59,14 +56,12 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	    	    		accessor.getNativeHeader("destination") + "-" + accessor.getHeader("lookupDestination"));
 			} catch (TokenExpiredException tee)
 			{
-				 System.out.println(
-	 	    	    		"WS connect from bad token - " + accessor.getSessionId());
 				// Bad auth token, refuse connection
             	return null;
 			}
 			catch (JWTDecodeException jde)
 			{
-				jde.printStackTrace();
+				// Bad auth token, refuse connection
 				return null;
 			}
 
@@ -74,7 +69,7 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
         }
         if (StompCommand.DISCONNECT == accessor.getCommand())
         {
-        	System.out.println("WS disconnect from user " +/* accessor.getgetPrincipal().getName()  +*/ "-" + accessor.getSessionId());
+        	// remove user sessions from WSSessionService?
  
         }
         return message;

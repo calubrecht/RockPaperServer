@@ -13,8 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/socket")
-                .setAllowedOrigins("*");
-                //.withSockJS();
+                .setAllowedOrigins("*"); // TODO: Should restrict allowed origin to ng app origin (see DeployConfiguration)
     }
 
     @Override
@@ -23,7 +22,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .enableSimpleBroker("/topic/chat","/queue")
                 .setTaskScheduler(createTaskScheduler())
                 .setHeartbeatValue(new long[] {10000, 10000});
-            //    registry.setUserDestinationPrefix("/queue");
     }
     
     @Bean
