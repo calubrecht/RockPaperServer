@@ -28,8 +28,11 @@ public class WSController implements ChatListener, GameListener
 	@Autowired
 	GameService gameService_;
 	
+	@Autowired
+	WSSessionService sessionService_;
 	
-	HashMap<String, Principal> userMapping_ = new HashMap<String, Principal>();
+	
+	HashMap<String, String> sessionMapping_ = new HashMap<String, String>();
 
 	@Autowired
 	WSController(SimpMessagingTemplate template)
@@ -47,15 +50,18 @@ public class WSController implements ChatListener, GameListener
 	@SubscribeMapping("/topic/chat")
 	public void onSubscribe(Principal p)
 	{
-		userMapping_.put(p.getName(), p);
 		this.store_.addChat(new ChatMessage("#system#", "[" + p.getName() +"] joined"));
 	}
 	
-	@SubscribeMapping("/queue/**")
-	public void onSubscribeQ(Principal p)
+	@SubscribeMapping("/user/queue/**")
+	public void onSubscribeQ(Principal p, SimpMessageHeaderAccessor header)
 	{
-		userMapping_.put(p.getName(), p);
-		//this.store_.addChat(new ChatMessage("#system#", "[" + p.getName() +"] joined"));
+		sessionMapping_.put(p.getName(), header.getSessionId());
+	    System.out.println(
+	    		"Subscribe from user " + p.getName()  + "-" +  header.getNativeHeader("id") + "-" + header.getSessionId()
+	    		+" on " +
+	            header.getNativeHeader("destination") + "-" + header.getHeader("lookupDestination"));
+	    
 	}
 
 	@MessageMapping("/send/message")
@@ -75,7 +81,15 @@ public class WSController implements ChatListener, GameListener
 	{
 		for (String p : msg.players_)
 		{
-		  template_.convertAndSendToUser(p, "/queue/game", msg);
+	     // System.out.println("Send out game message to " + p  + " on /queue/game");
+		 // template_.convertAndSendToUser(p, "/queue/game", msg);
+	    //  System.out.println("Send out game message to /queue/game-" + p + sessionMapping_.get(p));
+	    //  template_.convertAndSend("/queue/game-" + p + sessionMapping_.get(p), msg);
+		  for (String sessionID: sessionService_.getSessionIDs(p))
+		  {
+			  System.out.println("Send out game message to /queue/game-" +sessionID);
+			  template_.convertAndSend("/queue/game-" +sessionID, msg);  
+		  }
 		}
 	}
 

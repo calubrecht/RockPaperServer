@@ -15,13 +15,16 @@ public class GameService
 	
 	private LinkedHashSet<String> gameSeekers_ = new LinkedHashSet<String>();
 	
+	Thread matchThread_;
+	boolean running_ = true;
+	
 	@PostConstruct
 	public void init()
 	{
 	  // Game Seekers queue
-	  new Thread() {
+	  matchThread_ =  new Thread() {
 		  public void run() {
-		    while (true)
+		    while (running_)
 		    {
 		    	Pair<String> match = matchPlayers();
 		    	if (match == null)
@@ -40,8 +43,24 @@ public class GameService
 		    		startGame(match);
 		    	}
 		    }
-	  }}.start();
+	  }};
+	  matchThread_.start();
 	}
+	
+	@PreDestroy
+	public void shutdown()
+	{
+		running_ = false;
+		try
+		{
+			matchThread_.join();
+		} catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public synchronized void seekGame(String name)
 	{

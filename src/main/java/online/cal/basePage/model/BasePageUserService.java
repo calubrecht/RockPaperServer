@@ -23,7 +23,6 @@ public class BasePageUserService
 	
 	UserDetailsService service_ = new InMemoryUserDetailsManager(
 			
-			User.withUsername("user").password("{noop}password").roles("USER").build(),
 			User.withUsername("luser").password("{noop}password").roles("USER").build(),
 			User.withUsername("bozo").password("{noop}password").roles("USER").build(),
 			User.withUsername("spongey").password("{noop}password").roles("USER").build()
@@ -42,7 +41,6 @@ public class BasePageUserService
 		assert INSTANCE == null;
 		INSTANCE = this;
 
-		users_.put("user", new BasePageUser("user", "password"));
 		users_.put("luser", new BasePageUser("user", "password"));
 		users_.put("bozo", new BasePageUser("user", "password"));
 		users_.put("spongey", new BasePageUser("user", "password"));
