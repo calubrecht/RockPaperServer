@@ -7,7 +7,7 @@ public class GameMessage
   @JsonProperty("id")  public String id_;
   @JsonProperty("action")  public String action_;
   @JsonProperty("detail")  public String detail_;
-  public Pair<String> players_;
+  @JsonIgnore public Pair<String> players_;
 
   public GameMessage(String id, String action, String detail, Pair<String> players)
   {
