@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.*;
 import org.springframework.messaging.simp.annotation.*;
+import org.springframework.messaging.support.*;
 import org.springframework.security.authentication.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.socket.*;
@@ -27,10 +28,10 @@ public class WSController implements ChatListener, GameListener
 	ChatStore store_;
 	@Autowired
 	GameService gameService_;
-	
+
 	@Autowired
 	WSSessionService sessionService_;
-	
+
 	@Autowired
 	WSController(SimpMessagingTemplate template)
 	{
@@ -43,23 +44,44 @@ public class WSController implements ChatListener, GameListener
 		this.store_.addListener(this);
 		this.gameService_.addListener(this);
 	}
-	
+
+	@MessageMapping("/send/gameMessage")
+	public void onReceivedGameMessage(Principal p, MessageHeaderAccessor header, GameMessage message)
+	{
+		String action = message.getAction();
+		try
+		{
+			if (action.equals("makeChoice"))
+			{	
+				gameService_.makeChoice(message.getGameID(), p.getName(), message.getDetail());
+			}
+		} catch (InvalidActionException iae)
+		{
+			onGameMessage(new GameMessage(message.getGameID(), "ERROR", iae.getMessage(),
+					new Pair<String>(p.getName(), null)));
+		}
+	}
+
 	@Override
 	public void onChat(ChatMessage cm)
 	{
 		template_.convertAndSend("/topic/chat", cm);
 
 	}
-	
+
 	public void onGameMessage(GameMessage msg)
 	{
 		for (String p : msg.players_)
 		{
-		  for (String sessionID: sessionService_.getSessionIDs(p))
-		  {
-			  System.out.println("Send out game message to /queue/game-" +sessionID);
-			  template_.convertAndSend("/queue/game-" +sessionID, msg);  
-		  }
+			if (p == null)
+			{
+				continue;
+			}
+			for (String sessionID : sessionService_.getSessionIDs(p))
+			{
+				System.out.println("Send out game message to /queue/game-" + sessionID);
+				template_.convertAndSend("/queue/game-" + sessionID, msg);
+			}
 		}
 	}
 
