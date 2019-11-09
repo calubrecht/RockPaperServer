@@ -14,12 +14,16 @@ import com.auth0.jwt.*;
 import com.auth0.jwt.exceptions.*;
 
 import online.cal.basePage.JwtUtils.*;
+import online.cal.basePage.model.*;
 
 @Component
 public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 
 	@Autowired
 	WSSessionService sessionService_;
+	
+	@Autowired WSController wsController_;
+	@Autowired BasePageUserService userService_;
 
     @Override
     public Message<?> preSend(final Message<?> message, final MessageChannel channel) throws AuthenticationException {
@@ -50,6 +54,7 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	            accessor.setUser(user);
 	            String clientSessionID = accessor.getFirstNativeHeader("ClientSessionID");
 	            sessionService_.addUserClientSession(userName, clientSessionID);
+	            userService_.onConnect(userName, clientSessionID);
 	            System.out.println(
 	    	    		"WS connect from user " + userName  + "-" + clientSessionID + "-" + accessor.getSessionId()
 	    	    		+" on " +
@@ -73,8 +78,18 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
         }
         if (StompCommand.DISCONNECT == accessor.getCommand())
         {
-        	// remove user sessions from WSSessionService?
+        	if (accessor.getUser() == null)
+        	{
+        		return message;
+        	}
+        	String userName = accessor.getUser().getName();
+        	String clientSessionID = accessor.getFirstNativeHeader("ClientSessionID");
+        	userService_.onDisconnect(userName, clientSessionID);
  
+        }
+        if (StompCommand.UNSUBSCRIBE == accessor.getCommand())
+        {
+        	System.out.println("");
         }
         return message;
     }

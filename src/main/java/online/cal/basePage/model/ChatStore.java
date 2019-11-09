@@ -9,6 +9,7 @@ import org.bson.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
+import com.mongodb.*;
 import com.mongodb.client.*;
 
 @Component("chatStore")
@@ -25,13 +26,13 @@ public class ChatStore
 	@PostConstruct
 	public void init()
 	{
-	   MongoIterable<Document> itr = dbStore_.getCollection("chats").find();
+	   MongoIterable<Document> itr = dbStore_.getCollection("chats").find().sort(new BasicDBObject("orderID", -1)).limit(50);
 	   for (Document d : itr)
 	   {
 		   String user = d.getString("userName");
 		   String message = d.getString("message");
 		   long id = d.getLong("orderID");
-		   addChat(new ChatMessage(user, message, id));
+		   addChat(new ChatMessage(user, message, id), false);
 	   }
 	}
 	
@@ -60,6 +61,11 @@ public class ChatStore
 	
 	public synchronized void addChat(ChatMessage cm)
 	{
+		addChat(cm, true);
+	}
+	
+	public synchronized void addChat(ChatMessage cm, boolean persist)
+	{
 		if (cm.getMsgID() == 0)
 		{
     		highestID_++;
@@ -70,8 +76,16 @@ public class ChatStore
 			highestID_ = cm.getMsgID();
 		}
 		chatStore_.add(cm);
-		writeMsg(cm);
+		if (persist)
+		{
+		  writeMsg(cm);
+		}
 		fireListeners(cm);
+	}
+	
+	public synchronized void sendSystemMessage(String msg)
+	{
+		addChat(new ChatMessage("#system#", msg), false);
 	}
 	
 	public void fireListeners(ChatMessage cm)
