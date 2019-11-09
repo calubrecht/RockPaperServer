@@ -59,6 +59,10 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 				// Bad auth token, refuse connection
             	return null;
 			}
+			catch (SignatureVerificationException sve)
+			{
+				return null;
+			}
 			catch (JWTDecodeException jde)
 			{
 				// Bad auth token, refuse connection

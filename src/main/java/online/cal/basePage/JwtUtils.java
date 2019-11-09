@@ -1,12 +1,18 @@
 package online.cal.basePage;
 
 import java.io.*;
+import java.security.*;
+import java.time.*;
+import java.time.temporal.*;
 import java.util.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 
+import org.bson.*;
+import org.bson.conversions.*;
 import org.eclipse.jetty.http.*;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.*;
 import org.springframework.security.config.core.*;
@@ -21,6 +27,8 @@ import com.auth0.jwt.*;
 import com.auth0.jwt.algorithms.*;
 import com.auth0.jwt.exceptions.*;
 import com.auth0.jwt.interfaces.*;
+import com.mongodb.*;
+import com.mongodb.client.*;
 
 import online.cal.basePage.model.*;
 
@@ -36,18 +44,40 @@ public class JwtUtils
 		{
 			try
 			{
-				ALGO = Algorithm.HMAC256("beyondSecret");
+				refreshAlgo();
 			} catch (IllegalArgumentException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (UnsupportedEncodingException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} 
 		}
 		return ALGO;
+	}
+
+	private static synchronized void refreshAlgo()
+	{
+		MongoCollection<Document> collection = DBStore.getInstance().getCollection("JWTSecret");
+		Document query = new Document("Purpose", "JWTSecret");
+		
+		Document d = DBStore.getInstance().findOne("JWTSecret", query);
+		Date created = d == null ? null : d.getDate("created");
+		byte secretBytes[];
+		if (created == null || created.toInstant().plus(Period.ofDays(2)).isBefore(new Date().toInstant()))
+		{
+			collection.deleteMany(query);
+		    SecureRandom random = new SecureRandom();
+		    secretBytes = new byte[21];
+		    random.nextBytes(secretBytes);
+		    String b64 = Base64.getEncoder().encodeToString(secretBytes);
+		    Document dbO = query.append("created", new Date()).append("jwtToken", b64);
+		    collection.insertOne(dbO);
+		}
+		else
+		{
+			String b64 = d.getString("jwtToken");
+			secretBytes = Base64.getDecoder().decode(b64);
+		}
+		ALGO =  Algorithm.HMAC256(secretBytes);
 	}
 
 	public static class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter
@@ -95,6 +125,10 @@ public class JwtUtils
 
 				return getAuthenticationManager().authenticate(authRequest);
 			} catch (TokenExpiredException tee)
+			{
+				throw new JwtTokenExpiredException("Your session has expired. Please log in again");
+			}
+			catch (SignatureVerificationException sve)
 			{
 				throw new JwtTokenExpiredException("Your session has expired. Please log in again");
 			}

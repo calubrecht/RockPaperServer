@@ -37,7 +37,7 @@ public class SessionController
       }
       catch (AuthenticationException ae)
       {
-    	  return new ResponseEntity<UserMessage>(new UserMessage("", ""), HttpStatus.UNAUTHORIZED);
+    	  return new ResponseEntity<UserMessage>(new UserMessage(ae.getMessage(), ""), HttpStatus.UNAUTHORIZED);
       }
 	}
 	

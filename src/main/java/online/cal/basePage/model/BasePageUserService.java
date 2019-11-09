@@ -1,36 +1,39 @@
 package online.cal.basePage.model;
 
 
+import java.security.*;
+import java.security.spec.*;
 import java.util.*;
-import java.util.stream.*;
 
-import javax.servlet.http.*;
+import javax.annotation.*;
 
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.provisioning.*;
 import org.springframework.security.web.context.*;
+import org.springframework.stereotype.*;
 
 import com.fasterxml.jackson.annotation.*;
+import com.mongodb.client.*;
 
 import online.cal.basePage.*;
 
+@Component
 public class BasePageUserService
 {
 	static BasePageUserService INSTANCE;
 	WebSecurityConfig securityService_;
 	Map<String, BasePageUser> users_ = new HashMap<String, BasePageUser>();
 	
+	@Autowired
+	DBStore dbStore_;
+	
 	int guestCount = 0;
 	
-	UserDetailsService service_ = new InMemoryUserDetailsManager(
-			
-			User.withUsername("luser").password("{noop}password").roles("USER").build(),
-			User.withUsername("bozo").password("{noop}password").roles("USER").build(),
-			User.withUsername("spongey").password("{noop}password").roles("USER").build()
-			);
 	
 	public static BasePageUserService getService()
 	{
@@ -45,20 +48,39 @@ public class BasePageUserService
 		assert INSTANCE == null;
 		INSTANCE = this;
 
-		users_.put("luser", new BasePageUser("user", "password"));
+	/*	users_.put("luser", new BasePageUser("user", "password"));
 		users_.put("bozo", new BasePageUser("user", "password"));
-		users_.put("spongey", new BasePageUser("user", "password"));
+		users_.put("spongey", new BasePageUser("user", "password"));*/
 	}
-
-	public UserDetailsService getUserDetailsService()
+	
+	@PostConstruct
+	public void init()
 	{
-		return service_;
+	   byte[] salt = BasePageUser.generateSalt();
+	   try
+	{
+		String hash = BasePageUser.hashPassword("password", salt);
+		String saltString = Base64.getEncoder().encodeToString(salt);
+		BasePageUser b=null;
+	} catch (InvalidKeySpecException | NoSuchAlgorithmException e)
+	{
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	   MongoIterable<Document> itr = dbStore_.getCollection("users").find();
+	   for (Document d : itr)
+	   {
+		   String name = d.getString("userName");
+		   String passwordHash = d.getString("passwordHash");
+		   String passwordSalt = d.getString("passwordSalt");
+		   users_.put(name, new BasePageUser(name, passwordHash, passwordSalt));
+	   }
 	}
 
 	public UserMessage login(String user, String pass)
 	{
 	   BasePageUser bpu = getUser(user);
-	   if (bpu != null && !pass.equals("") && pass.equals(bpu.getPassword()))
+	   if (bpu != null && !pass.equals("") && bpu.validatePassword(pass))
 	   {
 		   String tok = JwtUtils.generateToken(user);
 		   return new UserMessage(user, tok);
