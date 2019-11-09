@@ -11,15 +11,20 @@ public class ChatMessage
     @JsonProperty("chatText") private String chatText_;
     @JsonProperty("msgID") private long msgID_;
     
-  /*  public ChatMessage()
-    {
-    	
-    }*/
+    public ChatMessage() {}
     
     public ChatMessage(String userName, String chatText)
     {
     	userName_ = userName;
     	chatText_ = chatText;
+    }
+    
+    
+    public ChatMessage(String userName, String chatText, long msgID)
+    {
+    	userName_ = userName;
+    	chatText_ = chatText;
+    	msgID_ = msgID;
     }
 
 	public String getUserName()

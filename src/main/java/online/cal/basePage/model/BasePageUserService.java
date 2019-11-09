@@ -48,9 +48,6 @@ public class BasePageUserService
 		assert INSTANCE == null;
 		INSTANCE = this;
 
-	/*	users_.put("luser", new BasePageUser("user", "password"));
-		users_.put("bozo", new BasePageUser("user", "password"));
-		users_.put("spongey", new BasePageUser("user", "password"));*/
 	}
 	
 	@PostConstruct

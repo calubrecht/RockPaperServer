@@ -3,26 +3,42 @@ package online.cal.basePage.model;
 import java.util.*;
 import java.util.stream.*;
 
+import javax.annotation.*;
+
+import org.bson.*;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
+
+import com.mongodb.client.*;
 
 @Component("chatStore")
 public class ChatStore
 {	
+	@Autowired
+	DBStore dbStore_;
+	
 	public ChatStore()
 	{
-		ChatMessage[] messages = new ChatMessage[]{
-				new ChatMessage("#system#", "<luser> has entered"),
-				new ChatMessage("luser", "Hey all!"),
-				new ChatMessage("#system#", "<bozo> has entered"),
-				new ChatMessage("luser", "Hey, bozo"),
-				new ChatMessage("bozo", "Hey, l. Want a game?"),
-				new ChatMessage("#system#", "<spongey> has entered"),
-				new ChatMessage("#system#", "<spongey> has left"),
-				new ChatMessage("#system#", "<bozo> has invited you to a game")};
-	   for (ChatMessage cm : messages)
+
+	}
+	
+	@PostConstruct
+	public void init()
+	{
+	   MongoIterable<Document> itr = dbStore_.getCollection("chats").find();
+	   for (Document d : itr)
 	   {
-		   addChat(cm);
+		   String user = d.getString("userName");
+		   String message = d.getString("message");
+		   long id = d.getLong("orderID");
+		   addChat(new ChatMessage(user, message, id));
 	   }
+	}
+	
+	public void writeMsg(ChatMessage msg)
+	{
+		Document d =  new Document("orderID", msg.getMsgID()).append("userName", msg.getUserName()).append("message", msg.getChatText());
+		dbStore_.getCollection("chats").insertOne(d);
 	}
 	
 	/**
@@ -44,9 +60,17 @@ public class ChatStore
 	
 	public synchronized void addChat(ChatMessage cm)
 	{
-		highestID_++;
-		cm.setMsgID(highestID_);
+		if (cm.getMsgID() == 0)
+		{
+    		highestID_++;
+	    	cm.setMsgID(highestID_);
+		}
+		if (cm.getMsgID() > highestID_)
+		{
+			highestID_ = cm.getMsgID();
+		}
 		chatStore_.add(cm);
+		writeMsg(cm);
 		fireListeners(cm);
 	}
 	
