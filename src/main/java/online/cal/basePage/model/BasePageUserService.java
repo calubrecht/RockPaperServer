@@ -145,6 +145,14 @@ public class BasePageUserService
 	
 	private BasePageUser createGuestUser(String name)
 	{
+		if (name.startsWith("Guest-"))
+		{
+			int index = Integer.parseInt(name.substring(6));
+			if (index > guestCount)
+			{
+				guestCount = index;
+			}
+		}
 		BasePageUser bpu = new BasePageUser(name, "");
 		String[] colors = {"orange", "yellow", "white", "black", "blue", "green"};
 		String color = colors[guestCount % colors.length];
