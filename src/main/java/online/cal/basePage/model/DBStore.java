@@ -46,5 +46,10 @@ public class DBStore
 	    return itr.first();
 	}
 	
+	public void insertOne(String collection, Document d)
+	{
+		MongoCollection<Document> col = getCollection(collection);
+		col.insertOne(d);
+	}
 	
 }

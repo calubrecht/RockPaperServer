@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("")
-                .enableSimpleBroker("/topic/chat","/queue")
+                .enableSimpleBroker("/topic/chat","/topic/users","/queue")
                 .setTaskScheduler(createTaskScheduler())
                 .setHeartbeatValue(new long[] {10000, 10000});
     }

@@ -26,13 +26,19 @@ public class SessionController
 	  return auth.getName(); 
 	}
 	
+	public static class LoginUser
+	{
+		public String userName;
+		public String password;
+	}
+	
 	@RequestMapping(value=SESSION + "login", method=RequestMethod.POST)
-	public ResponseEntity<UserMessage> login(HttpSession session, @RequestBody BasePageUser user)
+	public ResponseEntity<UserMessage> login(HttpSession session, @RequestBody LoginUser user)
 	{
       try
       {
     	  return new ResponseEntity<UserMessage>(
-    			  BasePageUserService.getService().login(user.getUserName(), user.getPassword()),
+    			  BasePageUserService.getService().login(user.userName, user.password),
     			  HttpStatus.OK);
       }
       catch (AuthenticationException ae)
@@ -48,6 +54,21 @@ public class SessionController
    			  BasePageUserService.getService().createGuest(),
    			  HttpStatus.OK);
     }
+	
+	@RequestMapping(value=SESSION + "register", method=RequestMethod.POST)
+	public ResponseEntity<UserMessage> register(HttpSession session, @RequestBody BasePageUser user)
+	{
+      try
+      {
+        return new ResponseEntity<UserMessage>(
+    			  BasePageUserService.getService().register(user),
+    			  HttpStatus.OK);  
+      }
+      catch (AuthenticationException ae)
+      {
+    	  return new ResponseEntity<UserMessage>(new UserMessage(ae.getMessage(), ""), HttpStatus.UNAUTHORIZED);
+      }
+	}
 	
 	@RequestMapping(SESSION + "isLoggedIn")
 	public boolean isLoggedIn()

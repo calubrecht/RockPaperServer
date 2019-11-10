@@ -7,12 +7,18 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude.*;
+
+@JsonInclude(Include.NON_NULL)
 public class BasePageUser
 {
 	private String userName_;
-	private String passwordHash_;
-	private byte salt_[];
+    private String passwordHash_;
+    private byte salt_[];
 	private String saltString_;
+	private String color_;
+	private String status_;
 	
 	public BasePageUser()
 	{
@@ -34,6 +40,16 @@ public class BasePageUser
 		saltString_ = "";
 		salt_ = null;
 	}
+	
+	public BasePageUser(BasePageUser u)
+	{
+		userName_ = u.userName_;
+		color_ = u.color_;
+		setStatus(u.getStatus());
+		passwordHash_ = u.passwordHash_;
+		salt_ = u.salt_;
+		saltString_ = u.saltString_;
+	}
 
 	public boolean isLoggedIn()
 	{
@@ -50,11 +66,13 @@ public class BasePageUser
 		userName_ = name;
 	}
 	
+	@JsonIgnore
 	public String getPassword()
 	{
 		return passwordHash_;
 	}
 	
+	@JsonIgnore
 	public String getPasswordSalt()
 	{
 		return saltString_;
@@ -63,6 +81,16 @@ public class BasePageUser
 	public void setPassword(String password)
 	{
 		passwordHash_ = password;
+	}
+	
+	public String getColor()
+	{
+		return color_;
+	}
+	
+	public void setColor(String c)
+	{
+		color_ = c;
 	}
 	
 	public static String hashPassword(String password, byte[] salt) throws InvalidKeySpecException, NoSuchAlgorithmException
@@ -92,5 +120,15 @@ public class BasePageUser
 			return false;
 		}
 		return newHash.contentEquals(passwordHash_);
+	}
+
+	public String getStatus()
+	{
+		return status_;
+	}
+
+	public void setStatus(String status)
+	{
+		status_ = status;
 	}
 }

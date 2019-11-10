@@ -20,7 +20,7 @@ import online.cal.basePage.model.ChatStore.*;
 import online.cal.basePage.model.GameService.*;
 
 @Controller
-public class WSController implements ChatListener, GameListener
+public class WSController implements ChatListener, GameListener, BasePageUserService.UserListener
 {
 	private SimpMessagingTemplate template_;
 
@@ -28,6 +28,8 @@ public class WSController implements ChatListener, GameListener
 	ChatStore store_;
 	@Autowired
 	GameService gameService_;
+	@Autowired
+	BasePageUserService userService_;
 
 	@Autowired
 	WSSessionService sessionService_;
@@ -43,6 +45,7 @@ public class WSController implements ChatListener, GameListener
 	{
 		this.store_.addListener(this);
 		this.gameService_.addListener(this);
+		this.userService_.addListener(this);
 	}
 
 	@MessageMapping("/send/gameMessage")
@@ -62,11 +65,15 @@ public class WSController implements ChatListener, GameListener
 		}
 	}
 
-	@Override
 	public void onChat(ChatMessage cm)
 	{
 		template_.convertAndSend("/topic/chat", cm);
 
+	}
+	
+	public void onUser(BasePageUser bpu)
+	{
+		template_.convertAndSend("/topic/users", bpu);
 	}
 
 	public void onGameMessage(GameMessage msg)

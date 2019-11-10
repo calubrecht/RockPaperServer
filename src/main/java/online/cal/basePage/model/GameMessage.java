@@ -1,7 +1,10 @@
 package online.cal.basePage.model;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+
+@JsonInclude(Include.NON_NULL)
 public class GameMessage
 {
   @JsonProperty("id")  public String id_;

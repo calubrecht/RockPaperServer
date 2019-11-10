@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.*;
 import com.mongodb.client.*;
 
 import online.cal.basePage.*;
+import online.cal.basePage.ws.*;
 
 @Component
 public class BasePageUserService
@@ -28,6 +29,7 @@ public class BasePageUserService
 	WebSecurityConfig securityService_;
 	Map<String, BasePageUser> users_ = new HashMap<String, BasePageUser>();
 	Map<String, String> userStatuses_ = new HashMap<String, String>();
+	List<UserListener> listeners_ = new ArrayList<UserListener>();
 
 	Timer delayTimer_ = new Timer();
 
@@ -71,7 +73,9 @@ public class BasePageUserService
 			String name = d.getString("userName");
 			String passwordHash = d.getString("passwordHash");
 			String passwordSalt = d.getString("passwordSalt");
-			users_.put(name, new BasePageUser(name, passwordHash, passwordSalt));
+			BasePageUser u = new BasePageUser(name, passwordHash, passwordSalt);
+			u.setColor(d.getString("color"));
+			users_.put(name, u);
 		}
 	}
 
@@ -85,18 +89,86 @@ public class BasePageUserService
 		}
 		throw new BPUAuthenticationException("Bad user or password");
 	}
+	
+	public UserMessage register(BasePageUser user)
+	{
+		String userName = user.getUserName();
+		if (userName.contains("#") || userName.startsWith("Guest"))
+		{
+			throw new BPUAuthenticationException("Invalid username");
+		}
+		if (users_.containsKey(userName))
+		{
+			throw new BPUAuthenticationException("User already exists");
+		}
+		String password = user.getPassword();
+		String color = user.getColor();
+		
+		byte[] salt = BasePageUser.generateSalt();
+		try
+		{
+			String hash = BasePageUser.hashPassword(password, salt);
+			String saltString = Base64.getEncoder().encodeToString(salt);
+			BasePageUser newUser = new BasePageUser(userName, hash, saltString);
+			newUser.setColor(color);
+			Document doc = new Document();
+			doc.put("userName", userName);
+			doc.put("color", color);
+			doc.put("passwordHash", hash);
+			doc.put("passwordSalt", saltString);
+			dbStore_.insertOne("users", doc);
+			users_.put(userName,  newUser);
+			String tok = JwtUtils.generateToken(userName);
+			return new UserMessage(userName, tok);
+			
+		}
+		catch (Exception e)
+		{
+			throw new BPUAuthenticationException(e.getMessage());
+		}
+		
+
+	}
 
 	public UserMessage createGuest()
 	{
 		String name = "Guest-" + ++guestCount;
 		BasePageUser bpu = new BasePageUser(name, "");
+		String[] colors = {"orange", "yellow", "white", "black", "blue", "green"};
+		String color = colors[guestCount % colors.length];
+		bpu.setColor(color);
+		
 		users_.put(name, bpu);
+
+		
 		return new UserMessage(name, JwtUtils.generateToken(name));
 	}
 
 	BasePageUser getUser(String name)
 	{
 		return users_.get(name);
+	}
+	
+	private String getStatus(String name)
+	{
+		String currStatus = userStatuses_.get(name);
+		if ("CONNECTED".equals(currStatus))
+		{
+			return "CONNECTED";
+		}
+		return "DISCONNECTED";
+	}
+	
+	public List<BasePageUser> getUsers()
+	{
+		List<BasePageUser> users = new ArrayList<BasePageUser>(users_.size());
+		users_.values().forEach(
+				u -> { 
+					BasePageUser copy = new BasePageUser(u);
+					copy.setStatus(getStatus(u.getUserName()));
+					users.add(copy);});
+		return users;
+		
 	}
 
 	public static class BPUAuthenticationException extends AuthenticationException
@@ -105,6 +177,13 @@ public class BasePageUserService
 		{
 			super(err);
 		}
+	}
+	
+	private BasePageUser addStatus(BasePageUser user)
+	{
+		BasePageUser temp = new BasePageUser(user);
+		temp.setStatus(userStatuses_.get(temp.getUserName()));
+		return temp;
 	}
 
 	public synchronized void onConnect(String userName, String clientSesssionID)
@@ -115,6 +194,7 @@ public class BasePageUserService
 			chatStore_.sendSystemMessage(userName + " has joined.");
 		}
 		userStatuses_.put(userName, "CONNECTED");
+		fireListeners(addStatus(users_.get(userName)));
 	}
 
 	public synchronized void onDisconnect(String userName, String clientSessionID)
@@ -137,6 +217,7 @@ public class BasePageUserService
 
 	}
 
+
 	public synchronized void checkDisconnect(String userName, String clientSessionID)
 	{
 		String currStatus = userStatuses_.get(userName);
@@ -144,9 +225,22 @@ public class BasePageUserService
 		{
 			userStatuses_.put(userName, "DISCONNECTED");
 			chatStore_.sendSystemMessage(userName + " has left.");
+			fireListeners(addStatus(users_.get(userName)));
 		}
 	}
 
+	
+	void fireListeners(BasePageUser user)
+	{
+	  listeners_.forEach(l -> l.onUser(user));
+	}
+	
+	
+	public void addListener(UserListener listener)
+	{
+		listeners_.add(listener);
+	}
+	
 	public static class UserMessage
 	{
 		@JsonProperty("userName")
@@ -159,5 +253,10 @@ public class BasePageUserService
 			userName_ = userName;
 			token_ = token;
 		}
+	}
+	
+	public static interface UserListener
+	{
+		public void onUser(BasePageUser user);
 	}
 }
