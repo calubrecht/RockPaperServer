@@ -85,6 +85,7 @@ public class BasePageUserService
 		if (bpu != null && !pass.equals("") && bpu.validatePassword(pass))
 		{
 			String tok = JwtUtils.generateToken(user);
+			userStatuses_.put(user, "CONNECTED");
 			return new UserMessage(user, tok);
 		}
 		throw new BPUAuthenticationException("Bad user or password");
@@ -133,15 +134,22 @@ public class BasePageUserService
 	public UserMessage createGuest()
 	{
 		String name = "Guest-" + ++guestCount;
+	    
+		
+		users_.put(name, createGuestUser(name));
+		userStatuses_.put(name, "CONNECTED");
+
+		
+		return new UserMessage(name, JwtUtils.generateToken(name));
+	}
+	
+	private BasePageUser createGuestUser(String name)
+	{
 		BasePageUser bpu = new BasePageUser(name, "");
 		String[] colors = {"orange", "yellow", "white", "black", "blue", "green"};
 		String color = colors[guestCount % colors.length];
 		bpu.setColor(color);
-		
-		users_.put(name, bpu);
-
-		
-		return new UserMessage(name, JwtUtils.generateToken(name));
+		return bpu;
 	}
 
 	BasePageUser getUser(String name)
@@ -152,7 +160,7 @@ public class BasePageUserService
 	private String getStatus(String name)
 	{
 		String currStatus = userStatuses_.get(name);
-		if ("CONNECTED".equals(currStatus))
+		if ("CONNECTED".equals(currStatus) || "DISCONNECTING".equals(currStatus))
 		{
 			return "CONNECTED";
 		}
@@ -194,6 +202,11 @@ public class BasePageUserService
 			chatStore_.sendSystemMessage(userName + " has joined.");
 		}
 		userStatuses_.put(userName, "CONNECTED");
+		if (!users_.containsKey(userName))
+		{
+			// Pre-existing guest from previous run?
+			users_.put(userName, createGuestUser(userName));
+		}
 		fireListeners(addStatus(users_.get(userName)));
 	}
 
