@@ -135,6 +135,8 @@ public class GameService
 		private String description_;
 		private Pair<String> match_;
 		private Map<String, Integer> playerMap_ = new HashMap<String, Integer>();
+		int round = 0;
+		int[] scores_ = new int[2];
 		
 		int[] points_ = new int[2];
 		String[] lastChoice = new String[2];
@@ -176,12 +178,14 @@ public class GameService
 			}
 			if (lastChoice[0].equals(lastChoice[1]))
 			{
-				// Tie. Try again
+				// Tie. Try again			
+				GameMessage gm = new GameMessage(ID_,  "TIE", "Tie!", match_);
+				gm.setChoices(lastChoice.clone());
 				lastChoice[0] = lastChoice[1] = null;
-				fireListeners(new GameMessage(ID_,  "TIE", description_, match_));
+				fireListeners(gm);
 				return;
 			}
-			if (!sendResult(lastChoice[0], lastChoice[1], match_.getFirst(), match_.getSecond()));
+			if (!sendResult(lastChoice[0], lastChoice[1], match_.getFirst(), match_.getSecond()))
 			{
 				sendResult(lastChoice[1], lastChoice[0], match_.getSecond(), match_.getFirst());
 			}
@@ -245,9 +249,13 @@ public class GameService
 		
 		private void sendWin(String winner, String description)
 		{
+			round++;
+            scores_[playerMap_.get(winner)]++;
 			GameMessage gm = new GameMessage(ID_,  "point", description, match_);
-			gm.setChoices(lastChoice);
+			gm.setChoices(lastChoice.clone());
 			gm.setWinner(winner);
+			gm.setRound(round);
+			gm.setScores(scores_);
 			lastChoice[0] = lastChoice[1] = null;
 			fireListeners(gm);
 		}
