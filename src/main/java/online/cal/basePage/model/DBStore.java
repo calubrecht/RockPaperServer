@@ -52,4 +52,9 @@ public class DBStore
 		col.insertOne(d);
 	}
 	
+	public void update(String collection, Document query, Document data)
+	{
+		db_.getCollection(collection).updateOne(query, new Document().append("$set", data));
+	}
+	
 }

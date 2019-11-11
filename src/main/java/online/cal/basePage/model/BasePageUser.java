@@ -19,6 +19,8 @@ public class BasePageUser
 	private String saltString_;
 	private String color_;
 	private String status_;
+	private long wins_;
+	private long losses_;
 	
 	public BasePageUser()
 	{
@@ -49,11 +51,18 @@ public class BasePageUser
 		passwordHash_ = u.passwordHash_;
 		salt_ = u.salt_;
 		saltString_ = u.saltString_;
+		wins_ = u.wins_;
+		losses_ = u.losses_;
 	}
 
 	public boolean isLoggedIn()
 	{
 		return false;
+	}
+	
+	public boolean isGuest()
+	{
+		return userName_.startsWith("Guest");
 	}
 	
 	public String getUserName()
@@ -130,5 +139,35 @@ public class BasePageUser
 	public void setStatus(String status)
 	{
 		status_ = status;
+	}
+
+	public long getWins()
+	{
+		return wins_;
+	}
+
+	public void setWins(long wins)
+	{
+		wins_ = wins;
+	}
+	
+	public void incrementWins()
+	{
+		wins_++;
+	}
+
+	public long getLosses()
+	{
+		return losses_;
+	}
+
+	public void setLosses(long losses)
+	{
+		losses_ = losses;
+	}
+	
+	public void incrementLosses()
+	{
+		losses_++;
 	}
 }

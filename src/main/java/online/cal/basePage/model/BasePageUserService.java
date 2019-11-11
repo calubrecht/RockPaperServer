@@ -17,6 +17,7 @@ import org.springframework.security.web.context.*;
 import org.springframework.stereotype.*;
 
 import com.fasterxml.jackson.annotation.*;
+import com.mongodb.*;
 import com.mongodb.client.*;
 
 import online.cal.basePage.*;
@@ -56,25 +57,24 @@ public class BasePageUserService
 	@PostConstruct
 	public void init()
 	{
-		byte[] salt = BasePageUser.generateSalt();
-		try
-		{
-			String hash = BasePageUser.hashPassword("password", salt);
-			String saltString = Base64.getEncoder().encodeToString(salt);
-			BasePageUser b = null;
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		MongoIterable<Document> itr = dbStore_.getCollection("users").find();
 		for (Document d : itr)
 		{
 			String name = d.getString("userName");
 			String passwordHash = d.getString("passwordHash");
 			String passwordSalt = d.getString("passwordSalt");
+			Long wins = d.getLong("wins");
+			Long losses = d.getLong("losses");
 			BasePageUser u = new BasePageUser(name, passwordHash, passwordSalt);
 			u.setColor(d.getString("color"));
+			if (wins != null)
+			{
+				u.setWins(wins);
+			}
+			if (losses != null)
+			{
+				u.setLosses(losses);
+			}
 			users_.put(name, u);
 		}
 	}
@@ -112,12 +112,10 @@ public class BasePageUserService
 			String saltString = Base64.getEncoder().encodeToString(salt);
 			BasePageUser newUser = new BasePageUser(userName, hash, saltString);
 			newUser.setColor(color);
-			Document doc = new Document();
-			doc.put("userName", userName);
-			doc.put("color", color);
-			doc.put("passwordHash", hash);
-			doc.put("passwordSalt", saltString);
-			dbStore_.insertOne("users", doc);
+			storeUser(newUser);
+		
+			
+			
 			users_.put(userName,  newUser);
 			String tok = JwtUtils.generateToken(userName);
 			return new UserMessage(userName, tok);
@@ -129,6 +127,32 @@ public class BasePageUserService
 		}
 		
 
+	}
+	
+	private void storeUser(BasePageUser user)
+	{
+		if (user.isGuest())
+		{
+			return;
+		}
+		Document doc = new Document();
+		doc.put("userName", user.getUserName());
+		doc.put("color", user.getColor());
+		doc.put("passwordHash", user.getPassword());
+		doc.put("passwordSalt", user.getPasswordSalt());
+		doc.put("wins", user.getWins());
+		doc.put("losses", user.getLosses());
+		dbStore_.insertOne("users", doc);
+	}
+	
+	private void updateUser(BasePageUser user, Document update)
+	{
+		if (user.isGuest())
+		{
+			return;
+		}
+		Document query = new Document().append("userName", user.getUserName());
+		dbStore_.update("users", query, update);
 	}
 
 	public UserMessage createGuest()
@@ -173,6 +197,22 @@ public class BasePageUserService
 			return "CONNECTED";
 		}
 		return "DISCONNECTED";
+	}
+	
+	public void recordWin(String userName)
+	{
+		BasePageUser bpu = users_.get(userName);
+		bpu.incrementWins();
+		updateUser(bpu, new Document().append("wins", bpu.getWins()));
+		fireListeners(addStatus(bpu));
+	}
+	
+	public void recordLoss(String userName)
+	{
+		BasePageUser bpu = users_.get(userName);
+		bpu.incrementLosses();
+		updateUser(bpu, new Document().append("losses", bpu.getLosses()));
+		fireListeners(addStatus(bpu));
 	}
 	
 	public List<BasePageUser> getUsers()

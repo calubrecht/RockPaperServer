@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import online.cal.basePage.*;
 import online.cal.basePage.model.*;
+import online.cal.basePage.model.GameService.*;
 
 @RestController
 @RequestMapping(AppConstants.API_PATH)
@@ -29,6 +30,22 @@ public class GameController
 	{
 		gameService_.endSeekGame(p.getName());
 		return new GameMessage("thisNewGame", "pending", "", new Pair<String>(p.getName(), p.getName()));
+			
+	}
+	
+	@RequestMapping(value=GAME + "cancel", method =RequestMethod.POST)
+	public GameMessage cancelGame(Principal p, @RequestBody GameMessage gm)
+	{
+		String id = gm.id_;
+		try
+		{
+			gameService_.cancelGame(id);
+		} catch (InvalidActionException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new GameMessage("id", "canceled", "", new Pair<String>(p.getName(), p.getName()));
 			
 	}
 }

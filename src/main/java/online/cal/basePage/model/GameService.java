@@ -5,6 +5,7 @@ import java.util.*;
 
 import javax.annotation.*;
 
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
 import online.cal.basePage.model.ChatStore.*;
@@ -20,6 +21,11 @@ public class GameService
 	
 	Thread matchThread_;
 	boolean running_ = true;
+	
+	private final int GAME_LENGTH = 3;
+	
+	@Autowired
+	BasePageUserService userService_;
 	
 	@PostConstruct
 	public void init()
@@ -73,6 +79,30 @@ public class GameService
 	public synchronized void endSeekGame(String name)
 	{
 	   gameSeekers_.remove(name);
+	}
+	
+	public synchronized void cancelGame(String id) throws InvalidActionException
+	{
+		ActiveGame game = activeGames_.get(id);
+		if (game == null)
+		{
+			throw new InvalidActionException("Unrecognized game ID");
+		}
+		game.cancel();
+		activeGames_.remove(id);
+	}
+	
+	public void recordScore(String id, String winningPlayer, String losingPlayer)
+	{
+		activeGames_.remove(id);
+		if (winningPlayer.contentEquals(losingPlayer))
+		{
+			// Don't record scores for players playing themselves.
+			return;
+		}
+		userService_.recordWin(winningPlayer);
+		userService_.recordLoss(losingPlayer);
+		
 	}
 	
 	public synchronized Pair<String> matchPlayers()
@@ -135,6 +165,7 @@ public class GameService
 		private String description_;
 		private Pair<String> match_;
 		private Map<String, Integer> playerMap_ = new HashMap<String, Integer>();
+		private boolean active_ = true;
 		int round = 0;
 		int[] scores_ = new int[2];
 		
@@ -157,8 +188,18 @@ public class GameService
 			fireListeners(new GameMessage(ID_,  "startGame", description_, match_));
 		}
 		
-		public void makeChoice(String player, String choice) throws InvalidActionException
+		public synchronized void cancel()
 		{
+			active_ = false;
+			fireListeners(new GameMessage(ID_,  "Canceled", description_, match_));
+		}
+		
+		public synchronized void makeChoice(String player, String choice) throws InvalidActionException
+		{
+			if (!active_)
+			{
+				throw new InvalidActionException("Game is no longer active");	
+			}
 			validatePlayer(player);
 			validateChoice(choice);
 			int playerIndex = playerMap_.get(player);
@@ -258,6 +299,16 @@ public class GameService
 			gm.setScores(scores_);
 			lastChoice[0] = lastChoice[1] = null;
 			fireListeners(gm);
+			
+			if (scores_[0] >= GAME_LENGTH || scores_[1] >= GAME_LENGTH)
+			{
+			  active_ = false;
+			  int winnerIdx = playerMap_.get(winner);
+			  int loserIdx = winnerIdx == 0 ? 1 : 0;
+			  GameMessage gameEnd = new GameMessage(ID_, "Finished", winner + " wins. " + scores_[winnerIdx] + " v " + scores_[loserIdx], match_);
+		      fireListeners(gameEnd);
+		      GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
+			}
 		}
 		
 		public String getID()

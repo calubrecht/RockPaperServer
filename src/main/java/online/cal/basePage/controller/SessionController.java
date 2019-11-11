@@ -30,6 +30,7 @@ public class SessionController
 	{
 		public String userName;
 		public String password;
+		public String color;
 	}
 	
 	@RequestMapping(value=SESSION + "login", method=RequestMethod.POST)
@@ -56,12 +57,14 @@ public class SessionController
     }
 	
 	@RequestMapping(value=SESSION + "register", method=RequestMethod.POST)
-	public ResponseEntity<UserMessage> register(HttpSession session, @RequestBody BasePageUser user)
+	public ResponseEntity<UserMessage> register(HttpSession session, @RequestBody LoginUser user)
 	{
       try
       {
+    	BasePageUser bpu = new BasePageUser(user.userName, user.password);
+    	bpu.setColor(user.color);
         return new ResponseEntity<UserMessage>(
-    			  BasePageUserService.getService().register(user),
+    			  BasePageUserService.getService().register(bpu),
     			  HttpStatus.OK);  
       }
       catch (AuthenticationException ae)
