@@ -85,6 +85,7 @@ public class BasePageUserService
 		if (bpu != null && !pass.equals("") && bpu.validatePassword(pass))
 		{
 			String tok = JwtUtils.generateToken(user);
+			chatStore_.sendSystemMessage(user + " has joined.");
 			userStatuses_.put(user, "CONNECTED");
 			return new UserMessage(user, tok);
 		}
@@ -161,6 +162,8 @@ public class BasePageUserService
 	    
 		
 		users_.put(name, createGuestUser(name));
+
+		chatStore_.sendSystemMessage(name + " has joined.");
 		userStatuses_.put(name, "CONNECTED");
 
 		
@@ -255,7 +258,19 @@ public class BasePageUserService
 			// Pre-existing guest from previous run?
 			users_.put(userName, createGuestUser(userName));
 		}
-		fireListeners(addStatus(users_.get(userName)));
+		final BasePageUser bpu = addStatus(users_.get(userName));
+		fireListeners(bpu);
+		// Resend after delay, so user can pick up their own user.
+		delayTimer_.schedule(new TimerTask() {
+
+			@Override
+			public void run()
+			{
+				fireListeners(bpu);
+
+			}
+		}, 2000);
+		
 	}
 
 	public synchronized void onDisconnect(String userName, String clientSessionID)
