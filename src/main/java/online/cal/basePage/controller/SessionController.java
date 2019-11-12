@@ -6,8 +6,6 @@ import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.annotation.*;
-
 import online.cal.basePage.AppConstants;
 import online.cal.basePage.model.*;
 import online.cal.basePage.model.BasePageUserService.*;

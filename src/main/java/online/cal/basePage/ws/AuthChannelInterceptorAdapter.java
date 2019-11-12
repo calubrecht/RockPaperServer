@@ -10,7 +10,6 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.stereotype.*;
 
-import com.auth0.jwt.*;
 import com.auth0.jwt.exceptions.*;
 
 import online.cal.basePage.JwtUtils.*;

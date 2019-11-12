@@ -1,27 +1,18 @@
 package online.cal.basePage.model;
 
-import java.security.*;
-import java.security.spec.*;
 import java.util.*;
 
 import javax.annotation.*;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.*;
-import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
-import org.springframework.security.core.context.*;
-import org.springframework.security.core.userdetails.*;
-import org.springframework.security.provisioning.*;
-import org.springframework.security.web.context.*;
 import org.springframework.stereotype.*;
 
 import com.fasterxml.jackson.annotation.*;
-import com.mongodb.*;
 import com.mongodb.client.*;
 
 import online.cal.basePage.*;
-import online.cal.basePage.ws.*;
 
 @Component
 public class BasePageUserService

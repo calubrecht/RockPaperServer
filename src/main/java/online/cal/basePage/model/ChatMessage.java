@@ -1,8 +1,5 @@
 package online.cal.basePage.model;
 
-import java.util.*;
-import java.util.stream.*;
-
 import com.fasterxml.jackson.annotation.*;
 
 public class ChatMessage
