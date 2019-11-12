@@ -48,6 +48,24 @@ public class GameController
 		return new GameMessage("id", "canceled", "", new Pair<String>(p.getName(), p.getName()));
 			
 	}
+	
+	@RequestMapping(value=GAME + "invite", method=RequestMethod.POST)
+	public GameMessage invite(Principal p, @RequestBody GameMessage gm)
+	{
+		String[] players = gm.getPlayers();
+		if (!players[0].equals(p.getName()) || players[1].equals(p.getName()))
+		{
+			return new GameMessage("", "error", "Invalid players list", new Pair<String>(players[0], players[1]));
+		}
+		try
+		{
+			gameService_.inviteGame(p.getName(), players[1]);
+		} catch (InvalidActionException e)
+		{
+			return new GameMessage("", "error", e.getMessage(), new Pair<String>(players[0], players[1]));
+		}
+		return new GameMessage("", "ok", "", new Pair<String>(players[0], players[1]));
+	}
 }
 
 

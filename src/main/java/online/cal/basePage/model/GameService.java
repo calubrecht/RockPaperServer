@@ -19,6 +19,10 @@ public class GameService
 	
 	private Map<String, ActiveGame> activeGames_ = new HashMap<String, ActiveGame>();
 	
+	private Map<String, ActiveGame> playerGames_ = new HashMap<String, ActiveGame>();
+	
+	private Map<String, Pair<String>> invitations_ = new HashMap<String, Pair<String>>();
+	
 	Thread matchThread_;
 	boolean running_ = true;
 	
@@ -81,6 +85,25 @@ public class GameService
 	   gameSeekers_.remove(name);
 	}
 	
+	public synchronized void inviteGame(String inviter, String invitee) throws InvalidActionException
+	{
+		if (gameSeekers_.contains(inviter))
+		{
+			gameSeekers_.remove(inviter);
+		}			
+		if (playerGames_.containsKey(inviter))
+		{
+			throw new InvalidActionException("Cannot invite a player while in a game.");
+		}
+		if (playerGames_.containsKey(invitee))
+		{
+			refuseInvitation(inviter, invitee);
+			return;
+		}
+        invitations_.put(invitee, new Pair<String>(inviter, invitee));
+        sendInvitation(invitee, inviter);
+	}
+	
 	public synchronized void cancelGame(String id) throws InvalidActionException
 	{
 		ActiveGame game = activeGames_.get(id);
@@ -90,11 +113,42 @@ public class GameService
 		}
 		game.cancel();
 		activeGames_.remove(id);
+		playerGames_.remove(game.getPlayer(0));
+		playerGames_.remove(game.getPlayer(1));
 	}
 	
-	public void recordScore(String id, String winningPlayer, String losingPlayer)
+	public synchronized void refuseInvitation(String inviter, String invitee)
 	{
+		invitations_.remove(invitee);
+		fireListeners(new GameMessage("", "refuseInvite", "", new Pair<String>(inviter, inviter)));
+	}
+	
+	
+	public synchronized void sendInvitation(String invitee, String inviter)
+	{
+		fireListeners(new GameMessage("", "invite", "", new Pair<String>(inviter, inviter)));
+	}
+	
+	public synchronized void acceptInvite(String invitee)
+	{
+		Pair<String> invitedGame = invitations_.get(invitee);
+		invitations_.remove(invitee);
+		if (invitedGame != null)
+		{
+			startGame(invitedGame);
+		}
+	}
+	
+	public void recordScore(String id, String winningPlayer, String losingPlayer) throws InvalidActionException
+	{
+		ActiveGame game = activeGames_.get(id);
+		if (game == null)
+		{
+			throw new InvalidActionException("Unrecognized game ID");
+		}
 		activeGames_.remove(id);
+		playerGames_.remove(game.getPlayer(0));
+		playerGames_.remove(game.getPlayer(1));
 		if (winningPlayer.contentEquals(losingPlayer))
 		{
 			// Don't record scores for players playing themselves.
@@ -133,6 +187,8 @@ public class GameService
 		ActiveGame game = new ActiveGame(makeID(), match.getFirst() + " v. " + match.getSecond(), match);
 		game.start();
 		activeGames_.put(game.getID(), game);
+		playerGames_.put(game.getPlayer(0), game);
+		playerGames_.put(game.getPlayer(1), game);	
 	}
 	
 	public void makeChoice(String gameID, String player, String choice) throws InvalidActionException
@@ -291,23 +347,30 @@ public class GameService
 		private void sendWin(String winner, String description)
 		{
 			round++;
-            scores_[playerMap_.get(winner)]++;
-			GameMessage gm = new GameMessage(ID_,  "point", description, match_);
+			scores_[playerMap_.get(winner)]++;
+			GameMessage gm = new GameMessage(ID_, "point", description, match_);
 			gm.setChoices(lastChoice.clone());
 			gm.setWinner(winner);
 			gm.setRound(round);
 			gm.setScores(scores_);
 			lastChoice[0] = lastChoice[1] = null;
 			fireListeners(gm);
-			
+
 			if (scores_[0] >= GAME_LENGTH || scores_[1] >= GAME_LENGTH)
 			{
-			  active_ = false;
-			  int winnerIdx = playerMap_.get(winner);
-			  int loserIdx = winnerIdx == 0 ? 1 : 0;
-			  GameMessage gameEnd = new GameMessage(ID_, "Finished", winner + " wins. " + scores_[winnerIdx] + " v " + scores_[loserIdx], match_);
-		      fireListeners(gameEnd);
-		      GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
+				active_ = false;
+				int winnerIdx = playerMap_.get(winner);
+				int loserIdx = winnerIdx == 0 ? 1 : 0;
+				GameMessage gameEnd = new GameMessage(ID_, "Finished",
+						winner + " wins. " + scores_[winnerIdx] + " v " + scores_[loserIdx], match_);
+				fireListeners(gameEnd);
+				try
+				{
+					GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
+				} catch (InvalidActionException e)
+				{
+					// Shoudln't get here.
+				}
 			}
 		}
 		
@@ -332,6 +395,10 @@ public class GameService
 			}
 		}
 		
+		public String getPlayer(int index)
+		{
+		   return index == 0 ? match_.getFirst() : match_.getSecond();
+		}
 		
 	}
 	
