@@ -73,7 +73,7 @@ public class WSController implements ChatListener, GameListener, BasePageUserSer
 
 	public void onGameMessage(GameMessage msg)
 	{
-		for (String p : msg.players_)
+		for (String p : msg.getDeliverTo())
 		{
 			if (p == null)
 			{

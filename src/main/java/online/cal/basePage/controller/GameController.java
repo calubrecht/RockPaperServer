@@ -52,7 +52,7 @@ public class GameController
 	public GameMessage invite(Principal p, @RequestBody GameMessage gm)
 	{
 		String[] players = gm.getPlayers();
-		if (!players[0].equals(p.getName()) || players[1].equals(p.getName()))
+		if (players == null || !players[0].equals(p.getName()) || players[1].equals(p.getName()))
 		{
 			return new GameMessage("", "error", "Invalid players list", new Pair<String>(players[0], players[1]));
 		}
@@ -64,6 +64,14 @@ public class GameController
 			return new GameMessage("", "error", e.getMessage(), new Pair<String>(players[0], players[1]));
 		}
 		return new GameMessage("", "ok", "", new Pair<String>(players[0], players[1]));
+	}
+	
+	@RequestMapping(value=GAME + "acceptInvite", method=RequestMethod.POST)
+	public GameMessage acceptInvite(Principal p, @RequestBody GameMessage gm)
+	{
+		String id = gm.getGameID();
+	    gameService_.acceptInvite(id);
+		return new GameMessage("", "ok", "", null);
 	}
 }
 

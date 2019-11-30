@@ -50,7 +50,7 @@ public class GameService
 		    	}
 		    	else
 		    	{
-		    		startGame(match);
+		    		startGameAndNotify	(match);
 		    	}
 		    }
 	  }};
@@ -97,8 +97,9 @@ public class GameService
 			refuseInvitation(inviter, invitee);
 			return;
 		}
-        invitations_.put(invitee, new Pair<String>(inviter, invitee));
-        sendInvitation(invitee, inviter);
+		String id = makeID();
+        invitations_.put(id, new Pair<String>(inviter, invitee));
+        sendInvitation(id, invitee, inviter);
 	}
 	
 	public synchronized void cancelGame(String id) throws InvalidActionException
@@ -121,18 +122,23 @@ public class GameService
 	}
 	
 	
-	public synchronized void sendInvitation(String invitee, String inviter)
+	public synchronized void sendInvitation(String id, String invitee, String inviter)
 	{
-		fireListeners(new GameMessage("", "invite", "", new Pair<String>(inviter, inviter)));
+		GameMessage gm = new GameMessage(id, "invite", makeGameDesc(inviter, invitee), new Pair<String>(invitee, inviter)); 
+		gm.setDeliverTo(new String[] {invitee});
+		fireListeners(gm);
 	}
 	
-	public synchronized void acceptInvite(String invitee)
+	public synchronized void acceptInvite(String id)
 	{
-		Pair<String> invitedGame = invitations_.get(invitee);
-		invitations_.remove(invitee);
+		Pair<String> invitedGame = invitations_.get(id);
+		GameMessage gm = new GameMessage(id, "acceptedInvite", makeGameDesc(invitedGame.getFirst(), invitedGame.getSecond()), new Pair<String>(invitedGame.getFirst(), invitedGame.getSecond())); 
+		gm.setDeliverTo(new String[] {invitedGame.getFirst()});
+		fireListeners(gm);
+		invitations_.remove(id);
 		if (invitedGame != null)
 		{
-			startGame(invitedGame);
+			startGame(id, invitedGame);
 		}
 	}
 	
@@ -179,13 +185,24 @@ public class GameService
 		return "game_" + b64;
 	}
 	
-	public void startGame(Pair<String> match)
+	private String makeGameDesc(String player1, String player2)
 	{
-		ActiveGame game = new ActiveGame(makeID(), match.getFirst() + " v. " + match.getSecond(), match);
+		return player1 + " v. " + player2;
+	}
+	
+	public void startGameAndNotify(Pair<String> match)
+	{
+		ActiveGame game = startGame(makeID(), match);
 		game.start();
+	}
+	
+	public ActiveGame startGame(String id, Pair<String> match)
+	{
+		ActiveGame game = new ActiveGame(id, makeGameDesc(match.getFirst(), match.getSecond()), match);
 		activeGames_.put(game.getID(), game);
 		playerGames_.put(game.getPlayer(0), game);
 		playerGames_.put(game.getPlayer(1), game);	
+		return game;
 	}
 	
 	public void makeChoice(String gameID, String player, String choice) throws InvalidActionException

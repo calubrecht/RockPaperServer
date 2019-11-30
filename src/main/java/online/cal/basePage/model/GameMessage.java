@@ -13,7 +13,7 @@ public class GameMessage
 	@JsonProperty("detail")
 	public String detail_;
 	@JsonIgnore
-	public Pair<String> players_;
+	private Pair<String> playerPair_;
 	@JsonProperty("choices")
 	String[] choices_;
 	@JsonProperty("winner")
@@ -22,22 +22,37 @@ public class GameMessage
 	private int[] scores_;
 	@JsonProperty("round")
 	private int round_;
+	private String[] deliverTo_;
 
-	public GameMessage(String id, String action, String detail, Pair<String> players)
+	public GameMessage(String id, String action, String detail, Pair<String> playerPair)
 	{
 		id_ = id;
 		action_ = action;
 		detail_ = detail;
-		players_ = players;
+		playerPair_ = playerPair;
+		if (playerPair != null)
+		{
+		  deliverTo_ = getPlayers();
+		}
 	}
 
 	@JsonProperty("players")
 	public String[] getPlayers()
 	{
+		if (playerPair_ == null)
+		{
+			return null;
+		}
 		return new String[]
-		{ players_.getFirst(), players_.getSecond() };
+		{ playerPair_.getFirst(), playerPair_.getSecond() };
 	}
 
+	@JsonProperty("players")
+	public void setPlayers(String[] players)
+	{
+		playerPair_ = new Pair<String>(players[0], players[1]);
+	}
+	
 	public void setChoices(String[] choices)
 	{
 		choices_ = choices;
@@ -81,5 +96,16 @@ public class GameMessage
 	public void setRound(int round)
 	{
 		round_ = round;
+	}
+	
+	@JsonIgnore
+	public void setDeliverTo(String[] deliverTo)
+	{
+		deliverTo_ = deliverTo;
+	}
+	
+	public String[] getDeliverTo()
+	{
+		return deliverTo_;
 	}
 }

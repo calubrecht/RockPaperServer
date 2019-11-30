@@ -13,6 +13,13 @@ public class Pair<T> implements Iterable<T>
 		list_.add(two);
 	}
 	
+	public Pair(T[] values)
+	{
+		assert values.length == 2;
+		list_.add(values[0]);
+		list_.add(values[1]);
+	}
+	
 	public T getFirst()
 	{
         return list_.get(0);
