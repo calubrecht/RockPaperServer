@@ -1,12 +1,19 @@
 package online.cal.basePage.model;
 
+import java.util.*;
+
 import com.fasterxml.jackson.annotation.*;
 
 public class ChatMessage
 {
+	public static final String SYSTEM = "#system#";
+	
     @JsonProperty("userName") private String userName_;
     @JsonProperty("chatText") private String chatText_;
     @JsonProperty("msgID") private long msgID_;
+    
+    
+    @JsonIgnore private Date dt_;
     
     public ChatMessage() {}
     
@@ -14,6 +21,7 @@ public class ChatMessage
     {
     	userName_ = userName;
     	chatText_ = chatText;
+    	dt_ = new Date();
     }
     
     
@@ -22,6 +30,7 @@ public class ChatMessage
     	userName_ = userName;
     	chatText_ = chatText;
     	msgID_ = msgID;
+    	dt_ = new Date();
     }
 
 	public String getUserName()
@@ -52,5 +61,10 @@ public class ChatMessage
 	protected void setMsgID(long index)
 	{
 		msgID_ = index;
+	}
+	
+	public boolean shouldExpire()
+	{
+		return getUserName().equals(SYSTEM) && dt_.toInstant().plusSeconds(60 * 60).isBefore(new Date().toInstant());
 	}
 }

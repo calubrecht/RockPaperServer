@@ -34,6 +34,16 @@ public class ChatStore
 		   long id = d.getLong("orderID");
 		   addChat(new ChatMessage(user, message, id), false);
 	   }
+	   
+	   Timer t = new Timer();
+	   t.schedule(new TimerTask() {
+
+		@Override
+		public void run()
+		{
+			cullOldSystemMessages();
+			
+		}}, 8000, 60000);
 	}
 	
 	public void writeMsg(ChatMessage msg)
@@ -81,6 +91,11 @@ public class ChatStore
 		  writeMsg(cm);
 		}
 		fireListeners(cm);
+	}
+	
+	public synchronized void cullOldSystemMessages()
+	{
+	  chatStore_ = chatStore_.stream().filter(cm -> !cm.shouldExpire()).collect(Collectors.toList());
 	}
 	
 	public synchronized void sendSystemMessage(String msg)
