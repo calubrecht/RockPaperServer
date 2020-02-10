@@ -229,6 +229,16 @@ public class GameService
 		public void onGameMessage(GameMessage msg);
 	}
 	
+	protected List<ActiveGame> activeGames()
+	{
+		return Collections.unmodifiableList(new ArrayList<ActiveGame>(activeGames_.values()));
+	}
+	
+	protected ActiveGame playGame(String name)
+	{
+		return playerGames_.get(name);
+	}
+	
 	class ActiveGame
 	{
 		private String ID_;
