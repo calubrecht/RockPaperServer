@@ -16,6 +16,8 @@ public class GameServiceTest implements GameListener
 
 	GameService service_;
 	MockUserService userService_;
+	GameMessage lastMessage_;
+	List<GameMessage> allMessages_;
 	
 	@Before
 	public void setUp()
@@ -26,6 +28,7 @@ public class GameServiceTest implements GameListener
 		service_.userService_ = userService_;
 		service_.addListener(this);
 		service_.init();
+		allMessages_ = new ArrayList<GameMessage>();
 	}
 	
 	@After
@@ -34,6 +37,7 @@ public class GameServiceTest implements GameListener
 		service_.shutdown();
 		service_ = null;
 		userService_ = null;
+		allMessages_ = null;
 	}
 	
 	@Test
@@ -92,6 +96,41 @@ public class GameServiceTest implements GameListener
         assertEquals(userService_.getWins("Frank"), 1);
         assertEquals(userService_.getLosses("Bobbo"), 1);
         assertEquals(userService_.getLosses("Frank"), 0);
+        assertEquals(lastMessage_.getDetail(), "Frank wins. 3 v 0");
+	}
+	
+	@Test
+	public void testBadAI() throws Exception
+	{
+		service_.setBot(new GameService.LastChoiceBot(1));
+		service_.startAIGame("Bobbo");
+		// LastChoiceBot chooses last choice of other player. First round is random. Random seed 1->First Choice = rock
+		assertEquals(service_.activeGames().size(), 1);
+		ActiveGame ag = service_.activeGames().get(0);
+		ag.makeChoice("Bobbo", "paper");
+	    assertEquals(lastMessage_.choices_[1], "rock");
+	    assertEquals(ag.scores_[0], 1);
+	    assertEquals(ag.scores_[1], 0);
+	    
+	    ag.makeChoice("Bobbo", "scissors");
+	    assertEquals(lastMessage_.choices_[1], "paper");
+	    assertEquals(ag.scores_[0], 2);
+	    assertEquals(ag.scores_[1], 0);
+	    
+	    ag.makeChoice("Bobbo", "lizard");
+	    assertEquals(lastMessage_.choices_[1], "scissors");
+	    assertEquals(ag.scores_[0], 2);
+	    assertEquals(ag.scores_[1], 1);
+	    
+	    ag.makeChoice("Bobbo", "rock");
+	    assertEquals(lastMessage_.getDetail(), "Bobbo wins. 3 v 1");
+	    assertEquals(allMessages_.get(1).choices_[1], "lizard");
+	    assertEquals(ag.scores_[0], 3);
+	    assertEquals(ag.scores_[1], 1);
+	    assertEquals(userService_.getWins("Bobbo"), 1);
+	    assertEquals(userService_.getWins("AI - Player"), 0);
+	    assertEquals(userService_.getLosses("Bobbo"), 0);
+	    assertEquals(userService_.getLosses("AI - Player"), 1);
 	}
 	
 	
@@ -142,6 +181,8 @@ public class GameServiceTest implements GameListener
 	public void onGameMessage(GameMessage msg)
 	{
 		// TODO Auto-generated method stub
+		lastMessage_ = msg;
+		allMessages_.add(0, msg);
 		
 	}
 }

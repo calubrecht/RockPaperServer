@@ -20,10 +20,13 @@ public class GameService
 	
 	private Map<String, Pair<String>> invitations_ = new HashMap<String, Pair<String>>();
 	
+	private Bot defaultBot_;
+	
 	Thread matchThread_;
 	boolean running_ = true;
 	
 	private final int GAME_LENGTH = 3;
+	public final static Set<String> VALID_CHOICES = new HashSet<String>(Arrays.asList(new String[] {"rock", "paper", "scissors", "lizard", "spock"}));
 	
 	@Autowired
 	BasePageUserService userService_;
@@ -71,6 +74,11 @@ public class GameService
 		}
 	}
 	
+	public void setBot(Bot defaultBot)
+	{
+		defaultBot_ = defaultBot;
+	}
+	
 	
 	public synchronized void seekGame(String name)
 	{
@@ -80,6 +88,16 @@ public class GameService
 	public synchronized void endSeekGame(String name)
 	{
 	   gameSeekers_.remove(name);
+	}
+	
+	public synchronized void startAIGame(String name)
+	{
+		Pair<String> match = new Pair<String>(name, "AI - Player");
+		ActiveGame game = new ActiveGame(makeID(), makeGameDesc(match.getFirst(), match.getSecond()), match);
+		activeGames_.put(game.getID(), game);
+		playerGames_.put(game.getPlayer(0), game);
+		game.setBot(defaultBot_);
+		game.start();
 	}
 	
 	public synchronized void inviteGame(String inviter, String invitee) throws InvalidActionException
@@ -251,8 +269,8 @@ public class GameService
 		
 		int[] points_ = new int[2];
 		String[] lastChoice = new String[2];
-		
-		public final Set<String> VALID_CHOICES = new HashSet<String>(Arrays.asList(new String[] {"rock", "paper", "scissors", "lizard", "spock"}));
+		List<List<String>> oldChoices_ = new ArrayList<List<String>>();
+		Bot bot_;
 		
 		public ActiveGame(String ID, String description, Pair<String> match)
 		{
@@ -261,6 +279,13 @@ public class GameService
 			match_ = match;
 			playerMap_.put(match.getFirst(),  0);
 			playerMap_.put(match.getSecond(),  1);
+			oldChoices_.add(new ArrayList<String>());
+			oldChoices_.add(new ArrayList<String>());
+		}
+		
+		public void setBot(Bot bot)
+		{
+			bot_ = bot;
 		}
 		
 		public void start()
@@ -288,6 +313,14 @@ public class GameService
 				throw new InvalidActionException(player + " has already made a selection.");
 			}
 			lastChoice[playerIndex] = choice;
+			if (bot_ != null)
+			{
+				assert playerIndex == 0;
+				String botChoice = bot_.nextChoice(oldChoices_.get(0), oldChoices_.get(1));
+				oldChoices_.get(1).add(0, botChoice);
+				lastChoice[1] = botChoice;
+			}
+			oldChoices_.get(playerIndex).add(0, choice);
 			tryResolve();
 		}
 		
@@ -432,6 +465,36 @@ public class GameService
 		public InvalidActionException(String msg)
 		{
 			super(msg);
+		}
+	}
+	
+	public interface Bot
+	{
+		String nextChoice(List<String> opponentsChoices, List<String>previousChoices);
+	}
+	
+	public static class LastChoiceBot implements Bot
+	{
+		Random r_;
+		List<String> CHOICES = new ArrayList<String>(VALID_CHOICES);
+		
+		public LastChoiceBot(long seed)
+		{
+			r_ = new Random(seed);
+		}
+		
+		public LastChoiceBot()
+		{
+			this(System.currentTimeMillis());
+		}
+		
+		public String nextChoice(List<String> opponentsChoices, List<String>previousChoices)
+		{
+			if (opponentsChoices.size() == 0)
+			{
+				return CHOICES.get(r_.nextInt() % CHOICES.size());
+			}
+			return opponentsChoices.get(0);
 		}
 	}
 }
