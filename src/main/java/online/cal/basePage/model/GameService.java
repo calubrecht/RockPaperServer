@@ -34,6 +34,7 @@ public class GameService
 	@PostConstruct
 	public void init()
 	{
+	  defaultBot_ = new LastChoiceBot();
 	  // Game Seekers queue
 	  matchThread_ =  new Thread() {
 		  public void run() {

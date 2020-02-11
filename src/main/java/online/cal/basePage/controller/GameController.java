@@ -31,6 +31,13 @@ public class GameController
 		return new GameMessage("thisNewGame", "pending", "", new Pair<String>(p.getName(), p.getName()));
 			
 	}
+	@RequestMapping(value=GAME + "startAIGame", method =RequestMethod.POST)
+	public GameMessage startAIGAme(Principal p )
+	{
+		gameService_.startAIGame(p.getName());
+		return new GameMessage("thisNewGame", "pending", "", new Pair<String>(p.getName(), p.getName()));
+			
+	}
 	
 	@RequestMapping(value=GAME + "cancel", method =RequestMethod.POST)
 	public GameMessage cancelGame(Principal p, @RequestBody GameMessage gm)
