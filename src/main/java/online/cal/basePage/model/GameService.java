@@ -493,7 +493,7 @@ public class GameService
 		{
 			if (opponentsChoices.size() == 0)
 			{
-				return CHOICES.get(r_.nextInt() % CHOICES.size());
+				return CHOICES.get(Math.abs(r_.nextInt()) % CHOICES.size());
 			}
 			return opponentsChoices.get(0);
 		}
