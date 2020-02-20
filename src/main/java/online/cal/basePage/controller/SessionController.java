@@ -24,6 +24,12 @@ public class SessionController
 	  return auth.getName(); 
 	}
 	
+	@RequestMapping(SESSION + "init")
+	public String initSession()
+	{
+	  return "Welcome";
+	}
+	
 	public static class LoginUser
 	{
 		public String userName;

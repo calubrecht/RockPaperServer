@@ -5,6 +5,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.www.*;
+import org.springframework.security.web.csrf.*;
 
 import online.cal.basePage.model.*;
 
@@ -16,7 +17,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-    	http.csrf().disable();
+    	http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     	http.addFilterBefore(new JwtUtils.JwtAuthenticationFilter(), BasicAuthenticationFilter.class);    	
     }
     

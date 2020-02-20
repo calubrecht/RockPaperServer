@@ -83,6 +83,7 @@ public class JwtUtils
 					  new AntPathRequestMatcher("/api/v1/sessions/login"),
 					  new AntPathRequestMatcher("/api/v1/sessions/loginGuest"),
 					  new AntPathRequestMatcher("/api/v1/sessions/register"),
+					  new AntPathRequestMatcher("/api/v1/sessions/init"),
 					  new AntPathRequestMatcher("/error"),
 					  new AntPathRequestMatcher("/socket/**"),
 					  new AntPathRequestMatcher("/lyrics"))));
