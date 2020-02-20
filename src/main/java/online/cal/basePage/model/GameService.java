@@ -474,28 +474,46 @@ public class GameService
 		String nextChoice(List<String> opponentsChoices, List<String>previousChoices);
 	}
 	
-	public static class LastChoiceBot implements Bot
-	{
-		Random r_;
-		List<String> CHOICES = new ArrayList<String>(VALID_CHOICES);
-		
+	public static class LastChoiceBot extends FullRandomBot
+	{	
 		public LastChoiceBot(long seed)
 		{
-			r_ = new Random(seed);
+			super(seed);
 		}
 		
 		public LastChoiceBot()
 		{
-			this(System.currentTimeMillis());
+			super();
 		}
 		
 		public String nextChoice(List<String> opponentsChoices, List<String>previousChoices)
 		{
 			if (opponentsChoices.size() == 0)
 			{
-				return CHOICES.get(Math.abs(r_.nextInt()) % CHOICES.size());
+				return super.nextChoice(opponentsChoices, previousChoices);
 			}
 			return opponentsChoices.get(0);
+		}
+	}
+	
+	public static class FullRandomBot implements Bot
+	{
+		Random r_;
+		List<String> CHOICES = new ArrayList<String>(VALID_CHOICES);
+		
+		public FullRandomBot(long seed)
+		{
+			r_ = new Random(seed);
+		}
+		
+		public FullRandomBot()
+		{
+			this(System.currentTimeMillis());
+		}
+		
+		public String nextChoice(List<String> opponentsChoices, List<String>previousChoices)
+		{
+			return CHOICES.get(Math.abs(r_.nextInt()) % CHOICES.size());
 		}
 	}
 }
