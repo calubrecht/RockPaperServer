@@ -51,6 +51,10 @@ public class SimpleController implements ErrorController
 		  {
 			  return "Unable to authenticate. Please log in again";
 		  }
+		  if (statusCode == HttpStatus.FORBIDDEN_403)
+		  {
+			  return "Unable to authenticate. Please log in again";
+		  }
           return "error-" + status;
 	  }
 	  return "error";

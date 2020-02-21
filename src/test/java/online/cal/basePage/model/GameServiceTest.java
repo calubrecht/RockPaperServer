@@ -7,8 +7,6 @@ import java.util.*;
 
 import org.junit.*;
 
-import online.cal.basePage.*;
-import online.cal.basePage.model.BasePageUserService.*;
 import online.cal.basePage.model.GameService.*;
 
 public class GameServiceTest implements GameListener

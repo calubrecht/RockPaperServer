@@ -1,7 +1,9 @@
 package online.cal.basePage.controller;
 import javax.servlet.http.*;
 
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,8 @@ import online.cal.basePage.model.BasePageUserService.*;
 public class SessionController
 {
 	public static final String SESSION = "sessions/";
+    @Autowired
+    AuthenticationManager authenticationManager;
 	
 	@RequestMapping(SESSION + "userName")
 	public String userName()
@@ -42,7 +46,10 @@ public class SessionController
 	{
       try
       {
-    	  return new ResponseEntity<UserMessage>(
+ 		 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.userName, user.password);
+		 token.setDetails(BasePageUserService.getService().getUser(user.userName));
+		 SecurityContextHolder.getContext().setAuthentication(token);
+    	 return new ResponseEntity<UserMessage>(
     			  BasePageUserService.getService().login(user.userName, user.password),
     			  HttpStatus.OK);
       }
@@ -55,9 +62,11 @@ public class SessionController
 	@RequestMapping(value=SESSION + "loginGuest", method=RequestMethod.POST)
 	public ResponseEntity<UserMessage> loginGuest(HttpSession session)
 	{
-   	  return new ResponseEntity<UserMessage>(
-   			  BasePageUserService.getService().createGuest(),
-   			  HttpStatus.OK);
+	  UserMessage um =  BasePageUserService.getService().createGuest();
+	  UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(um.userName_,"");
+	  token.setDetails(BasePageUserService.getService().getUser(um.userName_));
+	  SecurityContextHolder.getContext().setAuthentication(token);
+   	  return new ResponseEntity<UserMessage>(um, HttpStatus.OK);
     }
 	
 	@RequestMapping(value=SESSION + "register", method=RequestMethod.POST)

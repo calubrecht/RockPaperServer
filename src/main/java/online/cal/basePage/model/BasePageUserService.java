@@ -178,7 +178,7 @@ public class BasePageUserService
 		return bpu;
 	}
 
-	BasePageUser getUser(String name)
+	public BasePageUser getUser(String name)
 	{
 		return users_.get(name);
 	}
