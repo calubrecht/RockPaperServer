@@ -8,7 +8,7 @@ import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
 import org.springframework.web.bind.annotation.*;
 
-import online.cal.basePage.AppConstants;
+import online.cal.basePage.*;
 import online.cal.basePage.model.*;
 import online.cal.basePage.model.BasePageUserService.*;
 
@@ -41,34 +41,26 @@ public class SessionController
 		public String color;
 	}
 	
-	@RequestMapping(value=SESSION + "login", method=RequestMethod.POST)
-	public ResponseEntity<UserMessage> login(HttpSession session, @RequestBody LoginUser user)
+
+	@RequestMapping(value=SESSION + "logout", method=RequestMethod.POST)
+	public ResponseEntity<UserMessage> logout(HttpSession session)
 	{
       try
       {
- 		 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.userName, user.password);
-		 token.setDetails(BasePageUserService.getService().getUser(user.userName));
-		 SecurityContextHolder.getContext().setAuthentication(token);
-    	 return new ResponseEntity<UserMessage>(
-    			  BasePageUserService.getService().login(user.userName, user.password),
-    			  HttpStatus.OK);
+    	 session.invalidate();
+		 SecurityContextHolder.getContext().setAuthentication(null);
+		 SecurityContextHolder.clearContext();
+		 
+		 HttpHeaders headers = new HttpHeaders();
+		 headers.add("Set-Cookie","platform=mobile; Max-Age=604800; Path=/; Secure; HttpOnly");
+		 return ResponseEntity.status(HttpStatus.OK).headers(headers).body(new UserMessage("", ""));
       }
       catch (AuthenticationException ae)
       {
     	  return new ResponseEntity<UserMessage>(new UserMessage(ae.getMessage(), ""), HttpStatus.UNAUTHORIZED);
       }
 	}
-	
-	@RequestMapping(value=SESSION + "loginGuest", method=RequestMethod.POST)
-	public ResponseEntity<UserMessage> loginGuest(HttpSession session)
-	{
-	  UserMessage um =  BasePageUserService.getService().createGuest();
-	  UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(um.userName_,"");
-	  token.setDetails(BasePageUserService.getService().getUser(um.userName_));
-	  SecurityContextHolder.getContext().setAuthentication(token);
-   	  return new ResponseEntity<UserMessage>(um, HttpStatus.OK);
-    }
-	
+		
 	@RequestMapping(value=SESSION + "register", method=RequestMethod.POST)
 	public ResponseEntity<UserMessage> register(HttpSession session, @RequestBody LoginUser user)
 	{

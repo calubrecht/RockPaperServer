@@ -70,19 +70,6 @@ public class BasePageUserService
 		}
 	}
 
-	public UserMessage login(String user, String pass)
-	{
-		BasePageUser bpu = getUser(user);
-		if (bpu != null && !pass.equals("") && bpu.validatePassword(pass))
-		{
-			String tok = JwtUtils.generateToken(user);
-			chatStore_.sendSystemMessage(user + " has joined.");
-			userStatuses_.put(user, "CONNECTED");
-			return new UserMessage(user, tok);
-		}
-		throw new BPUAuthenticationException("Bad user or password");
-	}
-	
 	public UserMessage register(BasePageUser user)
 	{
 		String userName = user.getUserName();
@@ -147,18 +134,14 @@ public class BasePageUserService
 		dbStore_.update("users", query, update);
 	}
 
-	public UserMessage createGuest()
+	public String createGuest()
 	{
 		String name = "Guest-" + ++guestCount;
 	    
 		
 		users_.put(name, createGuestUser(name));
 
-		chatStore_.sendSystemMessage(name + " has joined.");
-		userStatuses_.put(name, "CONNECTED");
-
-		
-		return new UserMessage(name, JwtUtils.generateToken(name));
+		return name;
 	}
 	
 	private BasePageUser createGuestUser(String name)

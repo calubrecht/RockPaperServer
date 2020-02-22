@@ -34,5 +34,4 @@ public class BasePageAuthManager implements AuthenticationManager
 		
 		return new UsernamePasswordAuthenticationToken(token.getName(), null, Collections.singletonList(USER));
 	}
-
 }
