@@ -27,7 +27,7 @@ public class BasePageAuthManager implements AuthenticationManager
 		}
 		UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken)authentication;
 		BasePageUser user = userService_.getUser(token.getName());
-		if (!user.isGuest() && !user.validatePassword((String) token.getCredentials()))
+		if (user == null || !user.isGuest() && !user.validatePassword((String) token.getCredentials()))
 		{
 			throw new BadCredentialsException("Invalid authentication");
 		}
