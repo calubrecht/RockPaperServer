@@ -21,7 +21,9 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@master
+        name: basePage.war
+        path: /home/runner/work/RockPaperServer/RockPaperServer/target/basePage.war
 
       - name: ssh key with passphrase
         uses: appleboy/scp-action@master
@@ -31,5 +33,5 @@ jobs:
          key: ${{ secrets.SSH2 }}
          passphrase: ${{ secrets.PASSPHRASE }}
          port: ${{ secrets.PORT }}
-         source: "basePage.war"
-         target: "test"
+         source: "/home/runner/work/RockPaperServer/RockPaperServer/target/basePage.war"
+         target: "test.war"
