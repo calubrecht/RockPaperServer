@@ -73,7 +73,7 @@ public class BasePageUserService
 	public UserMessage register(BasePageUser user)
 	{
 		String userName = user.getUserName();
-		if (userName.contains("#") || userName.startsWith("Guest"))
+		if (userName.contains("#") || userName.startsWith("Guest") || isAI(userName))
 		{
 			throw new BPUAuthenticationException("Invalid username");
 		}
@@ -160,6 +160,11 @@ public class BasePageUserService
 		bpu.setColor(color);
 		return bpu;
 	}
+	
+	public static boolean isAI(String username)
+	{
+		return username.startsWith("AI -");
+	}
 
 	public BasePageUser getUser(String name)
 	{
@@ -178,6 +183,10 @@ public class BasePageUserService
 	
 	public void recordWin(String userName)
 	{
+		if (isAI(userName))
+		{
+			return;
+		}
 		BasePageUser bpu = users_.get(userName);
 		bpu.incrementWins();
 		updateUser(bpu, new Document().append("wins", bpu.getWins()));
@@ -186,6 +195,10 @@ public class BasePageUserService
 	
 	public void recordLoss(String userName)
 	{
+		if (isAI(userName))
+		{
+			return;
+		}
 		BasePageUser bpu = users_.get(userName);
 		bpu.incrementLosses();
 		updateUser(bpu, new Document().append("losses", bpu.getLosses()));
