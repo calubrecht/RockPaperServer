@@ -2,6 +2,7 @@ package online.cal.basePage.ws;
 
 import java.util.*;
 
+import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.messaging.*;
 import org.springframework.messaging.simp.stomp.*;
@@ -17,7 +18,7 @@ import online.cal.basePage.model.*;
 
 @Component
 public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
-
+    Logger logger = LoggerFactory.getLogger(getClass());
 	@Autowired
 	WSSessionService sessionService_;
 	
@@ -54,7 +55,7 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 	            String clientSessionID = accessor.getFirstNativeHeader("ClientSessionID");
 	            sessionService_.addUserClientSession(userName, clientSessionID);
 	            userService_.onConnect(userName, clientSessionID);
-	            System.out.println(
+	            logger.info(
 	    	    		"WS connect from user " + userName  + "-" + clientSessionID + "-" + accessor.getSessionId()
 	    	    		+" on " +
 	    	    		accessor.getNativeHeader("destination") + "-" + accessor.getHeader("lookupDestination"));
@@ -85,10 +86,6 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
         	String clientSessionID = accessor.getFirstNativeHeader("ClientSessionID");
         	userService_.onDisconnect(userName, clientSessionID);
  
-        }
-        if (StompCommand.UNSUBSCRIBE == accessor.getCommand())
-        {
-        	System.out.println("");
         }
         return message;
     }
