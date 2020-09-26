@@ -10,6 +10,10 @@ import org.springframework.messaging.simp.*;
 import org.springframework.messaging.support.*;
 import org.springframework.stereotype.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import online.cal.basePage.model.*;
 import online.cal.basePage.model.ChatStore.*;
 import online.cal.basePage.model.GameService.*;
@@ -17,6 +21,7 @@ import online.cal.basePage.model.GameService.*;
 @Controller
 public class WSController implements ChatListener, GameListener, BasePageUserService.UserListener
 {
+    Logger logger = LoggerFactory.getLogger(getClass());
 	private SimpMessagingTemplate template_;
 
 	@Autowired
@@ -81,7 +86,7 @@ public class WSController implements ChatListener, GameListener, BasePageUserSer
 			}
 			for (String sessionID : sessionService_.getSessionIDs(p))
 			{
-				System.out.println("Send out game message to /queue/game-" + sessionID);
+				logger.info("Send out game message to /queue/game-{}", sessionID);
 				template_.convertAndSend("/queue/game-" + sessionID, msg);
 			}
 		}
