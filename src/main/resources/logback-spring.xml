@@ -7,7 +7,7 @@
 		resource="org/springframework/boot/logging/logback/console-appender.xml" />
 
 
-	<springProfile name="!local">
+	<springProfile name="!local &amp; !test">
 		<property name="LOG_FILE" value="/var/log/spring/basepage.log}" ></property>
 			<include
 		resource="org/springframework/boot/logging/logback/file-appender.xml" />

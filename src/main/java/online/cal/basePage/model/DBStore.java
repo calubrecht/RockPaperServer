@@ -7,6 +7,7 @@ import org.bson.conversions.*;
 import org.springframework.stereotype.*;
 
 import com.mongodb.*;
+import com.mongodb.MongoClient;
 import com.mongodb.client.*;
 
 @Component
