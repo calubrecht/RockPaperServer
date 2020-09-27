@@ -9,6 +9,13 @@ import online.cal.basePage.*;
 @RequestMapping(AppConstants.API_PATH)
 public class VersionController
 {
+    public static VersionController INSTANCE;
+    
+    public VersionController()
+    {
+       INSTANCE = this;
+    }
+    
 	@Value ( "${app.version}")
 	private String appVersion;
 	
@@ -16,5 +23,10 @@ public class VersionController
 	public String version()
 	{
 	  return appVersion;
+	}
+	
+	public static String getVersion()
+	{
+	  return INSTANCE.appVersion;
 	}
 }

@@ -15,10 +15,12 @@ import org.springframework.context.*;
 import org.springframework.context.annotation.*;
 import org.springframework.security.web.authentication.session.*;
 
+import online.cal.basePage.controller.*;
+
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class BasePageApplication extends SpringBootServletInitializer
 {
-    Logger logger = LoggerFactory.getLogger(getClass());
+    Logger logger = LoggerFactory.getLogger(BasePageApplication.class);
 	@Value ( "${app.version}")
 	private String appVersion;
 	
@@ -27,7 +29,6 @@ public class BasePageApplication extends SpringBootServletInitializer
 	public BasePageApplication()
 	{
 		instance = this;
-		logger.info("BPA start" + this);
 	}
 	
 	public static void main(String[] args)
@@ -54,7 +55,7 @@ public class BasePageApplication extends SpringBootServletInitializer
 	{
 		if (instance != null)
 		{
-			instance.logger.info("Started BasePageApplication v:{} - {}", instance.appVersion, instance);
+	        instance.logger.info("Started BasePageApplication v:{}", VersionController.getVersion());
 		}
 	}
 
@@ -62,6 +63,6 @@ public class BasePageApplication extends SpringBootServletInitializer
 	public void onStartup(ServletContext servletContext) throws ServletException 
 	{
 		super.onStartup(servletContext);
-        logger.info("Started BasePageApplcation v:{}", appVersion);
+        logger.info("Started BasePageApplication v:{}", VersionController.getVersion());
 	}
 }
