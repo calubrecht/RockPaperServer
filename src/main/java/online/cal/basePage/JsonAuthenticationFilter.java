@@ -52,8 +52,8 @@ public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFi
 		String sData = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
 		JsonParser springParser = JsonParserFactory.getJsonParser();
 		Map<String, Object> map = springParser.parseMap(sData);
-		String username = map.get("userName").toString();
-		String password = map.get("password").toString();
+		String username = map.getOrDefault("userName", "").toString();
+		String password = map.getOrDefault("password", "").toString();
 		// TODO Auto-generated method stub
 		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
 				username, password);

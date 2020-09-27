@@ -16,6 +16,9 @@ import online.cal.basePage.model.BasePageUserService.*;
 @RequestMapping(AppConstants.API_PATH)
 public class SessionController
 {
+	@Value ( "${app.version}")
+	private String appVersion;
+	
 	public static final String SESSION = "sessions/";
     @Autowired
     AuthenticationManager authenticationManager;

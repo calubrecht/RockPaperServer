@@ -3,12 +3,13 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.eclipse.jetty.http.*;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.web.servlet.error.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class SimpleController implements ErrorController
-{
+{	
 	@RequestMapping("/")
 	public String home()
 	{
