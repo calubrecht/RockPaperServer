@@ -21,4 +21,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: basePage.war
-        path: /home/runner/work/RockPaperServer/RockPaperServer/target/basePage-0.0.1-SNAPSHOT.war
+        path: /home/runner/work/RockPaperServer/RockPaperServer/target/basePage*.war
