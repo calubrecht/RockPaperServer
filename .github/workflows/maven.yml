@@ -18,7 +18,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B package -DskipTests=true --file pom.xml
     - name: upload artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: basePage.war
         path: /home/runner/work/RockPaperServer/RockPaperServer/target/basePage*.war
