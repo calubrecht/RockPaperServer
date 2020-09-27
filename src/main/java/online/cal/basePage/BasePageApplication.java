@@ -27,6 +27,7 @@ public class BasePageApplication extends SpringBootServletInitializer
 	public BasePageApplication()
 	{
 		instance = this;
+		logger.info("BPA start" + this);
 	}
 	
 	public static void main(String[] args)
@@ -53,7 +54,7 @@ public class BasePageApplication extends SpringBootServletInitializer
 	{
 		if (instance != null)
 		{
-			instance.logger.info("Started BasePageApplication v:{}", instance.appVersion);
+			instance.logger.info("Started BasePageApplication v:{} - {}", instance.appVersion, instance);
 		}
 	}
 
