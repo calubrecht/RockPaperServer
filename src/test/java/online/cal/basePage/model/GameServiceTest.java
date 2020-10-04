@@ -138,7 +138,7 @@ public class GameServiceTest implements GameListener
 		service_.refuseInvitation("JoeBob", "Michael");
 
 		assertEquals(1, allMessages_.size());
-		assertEquals("", lastMessage_.getDetail());
+		assertEquals("Michael", lastMessage_.getDetail());
 		assertEquals("refuseInvite", lastMessage_.getAction());
 		assertEquals("JoeBob", lastMessage_.getPlayers()[0]);
 		assertEquals(null, lastMessage_.getPlayers()[1]);
