@@ -140,7 +140,7 @@ public class GameService
 	{
 		invitations_.remove(invitee);
 		logger.info("Refuse inviation from {} to {}", inviter, invitee);
-		fireListeners(new GameMessage("", "refuseInvite", "", new Pair<String>(inviter, null)));
+		fireListeners(new GameMessage("", "refuseInvite", invitee, new Pair<String>(inviter, null)));
 	}
 	
 	
