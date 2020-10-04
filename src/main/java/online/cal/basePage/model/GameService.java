@@ -4,12 +4,14 @@ import java.util.*;
 
 import javax.annotation.*;
 
+import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
 @Component("gameService")
 public class GameService
 {
+    Logger logger = LoggerFactory.getLogger(getClass());
 	private List<GameListener> listeners_ = new ArrayList<GameListener>();
 	
 	private LinkedHashSet<String> gameSeekers_ = new LinkedHashSet<String>();
@@ -137,7 +139,8 @@ public class GameService
 	public synchronized void refuseInvitation(String inviter, String invitee)
 	{
 		invitations_.remove(invitee);
-		fireListeners(new GameMessage("", "refuseInvite", "", new Pair<String>(inviter, inviter)));
+		logger.info("Refuse inviation from {} to {}", inviter, invitee);
+		fireListeners(new GameMessage("", "refuseInvite", "", new Pair<String>(inviter, null)));
 	}
 	
 	

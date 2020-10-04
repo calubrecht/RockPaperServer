@@ -130,9 +130,20 @@ public class GameServiceTest implements GameListener
 	    assertEquals(userService_.getLosses("Bobbo"), 0);
 	    assertEquals(userService_.getLosses("AI - Player"), 1);
 	}
-	
-	
-	
+
+	@Test
+	public void testRefuseInvitation() throws Exception
+	{
+		allMessages_.clear();
+		service_.refuseInvitation("JoeBob", "Michael");
+
+		assertEquals(1, allMessages_.size());
+		assertEquals("", lastMessage_.getDetail());
+		assertEquals("refuseInvite", lastMessage_.getAction());
+		assertEquals("JoeBob", lastMessage_.getPlayers()[0]);
+		assertEquals(null, lastMessage_.getPlayers()[1]);
+	}
+
 	private class MockUserService extends BasePageUserService
 	{
 		Map<String, Integer> wins_ = new HashMap<String, Integer>();
