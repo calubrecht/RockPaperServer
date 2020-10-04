@@ -4,8 +4,7 @@ import java.util.*;
 
 public class Pair<T> implements Iterable<T>
 {
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	List<T> list_ = (List<T>)new ArrayList();
+	List<T> list_ = new ArrayList<T>();
 	
 	public Pair(T one, T two)
 	{
