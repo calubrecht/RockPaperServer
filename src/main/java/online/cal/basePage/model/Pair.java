@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Pair<T> implements Iterable<T>
 {
-	List<T> list_ = new ArrayList<T>();
+	List<T> list_ = new ArrayList<>();
 	
 	public Pair(T one, T two)
 	{
@@ -14,7 +14,6 @@ public class Pair<T> implements Iterable<T>
 	
 	public Pair(T[] values)
 	{
-		assert values.length == 2;
 		list_.add(values[0]);
 		list_.add(values[1]);
 	}
