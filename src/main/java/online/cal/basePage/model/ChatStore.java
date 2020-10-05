@@ -17,6 +17,7 @@ public class ChatStore
 {	
 	@Autowired
 	DBStore dbStore_;
+	long pollTime = 60000;
 	
 	public ChatStore()
 	{
@@ -26,14 +27,7 @@ public class ChatStore
 	@PostConstruct
 	public void init()
 	{
-	   MongoIterable<Document> itr = dbStore_.getCollection("chats").find().sort(new BasicDBObject("orderID", -1)).limit(50);
-	   for (Document d : itr)
-	   {
-		   String user = d.getString("userName");
-		   String message = d.getString("message");
-		   long id = d.getLong("orderID");
-		   addChat(new ChatMessage(user, message, id), false);
-	   }
+	   loadDBMessages();
 	   
 	   Timer t = new Timer();
 	   t.schedule(new TimerTask() {
@@ -43,7 +37,19 @@ public class ChatStore
 		{
 			cullOldSystemMessages();
 			
-		}}, 8000, 60000);
+		}}, pollTime, pollTime);
+	}
+
+	void loadDBMessages()
+	{
+		MongoIterable<Document> itr = dbStore_.getCollection("chats").find().sort(new BasicDBObject("orderID", -1)).limit(50);
+		   for (Document d : itr)
+		   {
+			   String user = d.getString("userName");
+			   String message = d.getString("message");
+			   long id = d.getLong("orderID");
+			   addChat(new ChatMessage(user, message, id), false);
+		   }
 	}
 	
 	public void writeMsg(ChatMessage msg)

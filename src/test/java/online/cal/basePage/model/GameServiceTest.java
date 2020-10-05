@@ -38,7 +38,7 @@ public class GameServiceTest implements GameListener
 	}
 	
 	@After
-	public void tearDown()
+	public void tearDown() throws InterruptedException
 	{
 		service_.shutdown();
 		service_ = null;

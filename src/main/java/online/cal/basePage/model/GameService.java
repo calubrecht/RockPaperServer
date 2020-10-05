@@ -72,17 +72,10 @@ public class GameService
 	}
 	
 	@PreDestroy
-	public void shutdown()
+	public void shutdown() throws InterruptedException
 	{
 		running_ = false;
-		try
-		{
-			matchThread_.join();
-		} catch (InterruptedException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		matchThread_.join();
 	}
 	
 	public void setBot(Bot defaultBot)
