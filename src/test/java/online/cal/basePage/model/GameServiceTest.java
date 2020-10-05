@@ -126,22 +126,23 @@ public class GameServiceTest implements GameListener
 		// LastChoiceBot chooses last choice of other player. First round is random. Random seed 1->First Choice = rock
 		assertEquals(service_.activeGames().size(), 1);
 		ActiveGame ag = service_.activeGames().get(0);
-		ag.makeChoice("Bobbo", "paper");
+		String id = ag.getID();
+		service_.makeChoice(id, "Bobbo", "paper");
 	    assertEquals(lastMessage_.choices_[1], "rock");
 	    assertEquals(ag.scores_[0], 1);
 	    assertEquals(ag.scores_[1], 0);
 	    
-	    ag.makeChoice("Bobbo", "scissors");
+	    service_.makeChoice(id, "Bobbo", "scissors");
 	    assertEquals(lastMessage_.choices_[1], "paper");
 	    assertEquals(ag.scores_[0], 2);
 	    assertEquals(ag.scores_[1], 0);
 	    
-	    ag.makeChoice("Bobbo", "lizard");
+	    service_.makeChoice(id, "Bobbo", "lizard");
 	    assertEquals(lastMessage_.choices_[1], "scissors");
 	    assertEquals(ag.scores_[0], 2);
 	    assertEquals(ag.scores_[1], 1);
 	    
-	    ag.makeChoice("Bobbo", "rock");
+	    service_.makeChoice(id, "Bobbo", "rock");
 	    assertEquals(lastMessage_.getDetail(), "Bobbo wins. 3 v 1");
 	    assertEquals(allMessages_.get(1).choices_[1], "lizard");
 	    assertEquals(ag.scores_[0], 3);
@@ -210,6 +211,303 @@ public class GameServiceTest implements GameListener
 		service_.inviteGame("Pete", "Bobbo");
 		assertEquals("refuseInvite", lastMessage_.getAction());
         
+	}
+	
+	@Test
+	public void testAcceptInvite() throws InvalidActionException
+	{
+		service_.inviteGame("Bobbo", "Pete");
+		assertEquals("invite", lastMessage_.getAction());
+		assertEquals("Pete", lastMessage_.getDeliverTo()[0]);
+		assertEquals(1, lastMessage_.getDeliverTo().length);
+		assertEquals("Pete", lastMessage_.getPlayers()[0]);
+		assertEquals("Bobbo", lastMessage_.getPlayers()[1]);
+		String gameID = lastMessage_.id_;
+		
+		clearMessages();
+		service_.acceptInvite(gameID);
+		assertEquals(1, allMessages_.size());
+		assertEquals("acceptedInvite", allMessages_.get(0).action_);
+		assertEquals("Bobbo", lastMessage_.getDeliverTo()[0]);
+		assertEquals(1, lastMessage_.getDeliverTo().length);
+		
+		ActiveGame gamePete = service_.playGame("Pete");
+		ActiveGame gameBobbo = service_.playGame("Bobbo");
+		assertEquals(gameID, gamePete.getID());
+		assertEquals(gamePete, gameBobbo);
+		
+	}
+	
+	@Test
+	public void testCancelGame() throws InterruptedException, InvalidActionException
+	{
+        service_.seekGame("Bobbo");
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        waitForPoll();
+        assertEquals(service_.activeGames().size(), 1);
+        assertTrue(service_.playGame("Bobbo") != null);
+        assertTrue(service_.playGame("Frank") != null);
+        ActiveGame ag = service_.activeGames().get(0);
+        
+        clearMessages();
+        service_.cancelGame(ag.getID());
+        assertEquals(1, allMessages_.size());
+        assertEquals("Canceled", lastMessage_.getAction());
+        assertEquals(2, lastMessage_.getDeliverTo().length);
+        assertEquals("Bobbo", lastMessage_.getDeliverTo()[0]);
+        assertEquals("Frank", lastMessage_.getDeliverTo()[1]);
+        assertEquals(null, service_.playGame("Bobbo"));
+        assertEquals(null, service_.playGame("Frank"));
+	}
+	
+	@Test
+	public void testCancelNonexistantGame()
+	{
+		try
+		{
+			service_.cancelGame("BOOGEDITY");
+			assertTrue("Canceling nonexistant game should throw", false);
+		} catch (InvalidActionException e)
+		{
+		}
+	}
+	
+	@Test
+	public void testResendActive() throws InterruptedException, InvalidActionException
+	{
+        service_.seekGame("Bobbo");
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        waitForPoll();
+        assertEquals(service_.activeGames().size(), 1);
+        assertTrue(service_.playGame("Bobbo") != null);
+        assertTrue(service_.playGame("Frank") != null);
+        ActiveGame ag = service_.activeGames().get(0);
+        String id = ag.getID();
+		service_.makeChoice(id, "Bobbo", "scissors");
+		service_.makeChoice(id, "Frank", "rock");
+		
+		clearMessages();
+		service_.resendActive("Frank");
+		assertEquals(1, allMessages_.size());
+		assertEquals("resendGame", lastMessage_.getAction());
+		assertEquals(id, lastMessage_.id_);
+		assertEquals(1, lastMessage_.getDeliverTo().length);
+		assertEquals("Frank", lastMessage_.getDeliverTo()[0]);
+		
+		assertEquals("Bobbo", lastMessage_.getPlayers()[0]);
+		assertEquals("Frank", lastMessage_.getPlayers()[1]);
+		assertEquals(0, lastMessage_.getScores()[0]);
+		assertEquals(1, lastMessage_.getScores()[1]);
+		assertEquals("Bobbo v. Frank", lastMessage_.getDetail());
+		assertEquals("Rock smashes scissors.", lastMessage_.getDetail2());
+		assertEquals(1, lastMessage_.getRound());
+		assertEquals("scissors", lastMessage_.choices_[0]);
+		assertEquals("rock", lastMessage_.choices_[1]);
+		
+		service_.makeChoice(id, "Bobbo", "scissors");
+		clearMessages();
+		service_.resendActive("Frank");
+		
+		assertEquals("Bobbo", lastMessage_.getPlayers()[0]);
+		assertEquals("Frank", lastMessage_.getPlayers()[1]);
+		assertEquals(0, lastMessage_.getScores()[0]);
+		assertEquals(1, lastMessage_.getScores()[1]);
+		assertEquals("Bobbo v. Frank", lastMessage_.getDetail());
+		assertEquals("Rock smashes scissors.", lastMessage_.getDetail2());
+		assertEquals(1, lastMessage_.getRound());
+		assertEquals("scissors", lastMessage_.choices_[0]);
+		assertEquals("rock", lastMessage_.choices_[1]);
+		
+		clearMessages();
+		service_.resendActive("Bobbo");
+		
+		assertEquals("Bobbo", lastMessage_.getDeliverTo()[0]);
+		assertEquals("Bobbo", lastMessage_.getPlayers()[0]);
+		assertEquals("Frank", lastMessage_.getPlayers()[1]);
+		assertEquals(0, lastMessage_.getScores()[0]);
+		assertEquals(1, lastMessage_.getScores()[1]);
+		assertEquals("Bobbo v. Frank", lastMessage_.getDetail());
+		assertEquals(null, lastMessage_.getDetail2());
+		assertEquals(1, lastMessage_.getRound());
+		assertEquals("scissors", lastMessage_.choices_[0]);
+		assertEquals(null, lastMessage_.choices_[1]);
+		
+		service_.makeChoice(id, "Frank", "scissors");
+		clearMessages();
+		service_.resendActive("Frank");
+		assertEquals("Bobbo", lastMessage_.getPlayers()[0]);
+		assertEquals("Frank", lastMessage_.getPlayers()[1]);
+		assertEquals(0, lastMessage_.getScores()[0]);
+		assertEquals(1, lastMessage_.getScores()[1]);
+		assertEquals("Bobbo v. Frank", lastMessage_.getDetail());
+		assertEquals("Tie!", lastMessage_.getDetail2());
+		assertEquals(1, lastMessage_.getRound());
+		assertEquals("scissors", lastMessage_.choices_[0]);
+		assertEquals("scissors", lastMessage_.choices_[1]);
+		
+		service_.makeChoice(id, "Frank", "spock");
+		clearMessages();
+		service_.resendActive("Frank");
+		assertEquals("Bobbo", lastMessage_.getPlayers()[0]);
+		assertEquals("Frank", lastMessage_.getPlayers()[1]);
+		assertEquals(0, lastMessage_.getScores()[0]);
+		assertEquals(1, lastMessage_.getScores()[1]);
+		assertEquals("Bobbo v. Frank", lastMessage_.getDetail());
+		assertEquals(null, lastMessage_.getDetail2());
+		assertEquals(1, lastMessage_.getRound());
+		assertEquals(null, lastMessage_.choices_[0]);
+		assertEquals("spock", lastMessage_.choices_[1]);
+	}
+	
+	@Test
+	public void testAllCases() throws InterruptedException
+	{
+        service_.seekGame("Bobbo");
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        waitForPoll();
+        ActiveGame ag = service_.activeGames().get(0);
+        
+        String[] res;
+        res = ag.getResult("Bran", "Oats", "Bobbo", "Frank");
+        assertEquals(0, res.length);
+        
+        
+        // Frontways
+        res = ag.getResult("scissors", "spock", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Spock breaks scissors.", res[1]);
+        res = ag.getResult("scissors", "rock", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Rock smashes scissors.", res[1]);
+        res = ag.getResult("scissors", "paper", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Scissors cut paper.", res[1]);
+        res = ag.getResult("scissors", "lizard", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Scissors decapitate lizard.", res[1]);
+        res = ag.getResult("scissors", "scissors", "Bobbo", "Frank");
+        assertEquals(null, res[0]);
+        assertEquals("Tie!", res[1]);
+        
+        res = ag.getResult("rock", "spock", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Spock vaporizes rock.", res[1]);
+        res = ag.getResult("rock", "paper", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Paper covers rock.", res[1]);
+        res = ag.getResult("rock", "scissors", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Rock smashes scissors.", res[1]);
+        res = ag.getResult("rock", "lizard", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Rock crushes lizard.", res[1]);
+        res = ag.getResult("rock", "rock", "Bobbo", "Frank");
+        assertEquals(null, res[0]);
+        assertEquals("Tie!", res[1]);
+        
+        res = ag.getResult("paper", "scissors", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Scissors cut paper.", res[1]);
+        res = ag.getResult("paper", "lizard", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Lizard eats paper.", res[1]);
+        res = ag.getResult("paper", "rock", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Paper covers rock.", res[1]);
+        res = ag.getResult("paper", "spock", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Paper disproves Spock.", res[1]);
+        res = ag.getResult("paper", "paper", "Bobbo", "Frank");
+        assertEquals(null, res[0]);
+        assertEquals("Tie!", res[1]);
+        
+        res = ag.getResult("spock", "paper", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Paper disproves Spock.", res[1]);
+        res = ag.getResult("spock", "lizard", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Lizard poisons Spock.", res[1]);
+        res = ag.getResult("spock", "rock", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Spock vaporizes rock.", res[1]);
+        res = ag.getResult("spock", "scissors", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Spock breaks scissors.", res[1]);
+        res = ag.getResult("spock", "spock", "Bobbo", "Frank");
+        assertEquals(null, res[0]);
+        assertEquals("Tie!", res[1]);
+        
+        
+        res = ag.getResult("lizard", "rock", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Rock crushes lizard.", res[1]);
+        res = ag.getResult("lizard", "scissors", "Bobbo", "Frank");
+        assertEquals("Frank", res[0]);
+        assertEquals("Scissors decapitate lizard.", res[1]);
+        res = ag.getResult("lizard", "spock", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Lizard poisons Spock.", res[1]);
+        res = ag.getResult("lizard", "paper", "Bobbo", "Frank");
+        assertEquals("Bobbo", res[0]);
+        assertEquals("Lizard eats paper.", res[1]);
+        res = ag.getResult("lizard", "lizard", "Bobbo", "Frank");
+        assertEquals(null, res[0]);
+        assertEquals("Tie!", res[1]);
+	}
+	
+	@Test
+	public void testInvalidThings() throws InterruptedException, InvalidActionException
+	{
+        service_.seekGame("Bobbo");
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        waitForPoll();
+        ActiveGame ag = service_.activeGames().get(0);
+        
+        try
+		{
+			ag.makeChoice("Bobbo", "Gatling Gun");
+			assertTrue("Gatling Gun should be invalid", false);
+		} catch (InvalidActionException e)
+		{
+		}
+        
+        try
+		{
+			ag.makeChoice("Chewie", "spock");
+			assertTrue("Chewie Gun should be invalid", false);
+		} catch (InvalidActionException e)
+		{
+		}
+        
+        ag.makeChoice("Bobbo",  "spock");
+        try
+		{
+			ag.makeChoice("Bobbo", "lizard");
+			assertTrue("Should fail because Bobbo already acted", false);
+		} catch (InvalidActionException e)
+		{
+		}
+        
+        ag.cancel();
+        try
+ 		{
+ 			ag.makeChoice("Frank", "lizard");
+ 			assertTrue("Game was canceled", false);
+ 		} catch (InvalidActionException e)
+ 		{
+ 		}
+        
+        try
+ 		{
+ 			service_.makeChoice("Fahrvergnügen", "Frank", "lizard");
+ 			assertTrue("Should not make choice for game that doesn't exist", false);
+ 		} catch (InvalidActionException e)
+ 		{
+ 		}
 	}
 	
 	private void clearMessages()

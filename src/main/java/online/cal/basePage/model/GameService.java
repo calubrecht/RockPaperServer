@@ -181,7 +181,7 @@ public class GameService
 		}
 	}
 	
-	private void recordScore(String id, String winningPlayer, String losingPlayer) throws InvalidActionException
+	private void recordScore(String id, String winningPlayer, String losingPlayer)
 	{
 		ActiveGame game = activeGames_.get(id);
 		activeGames_.remove(id);
@@ -328,7 +328,6 @@ public class GameService
 			lastChoice[playerIndex] = choice;
 			if (bot_ != null)
 			{
-				assert playerIndex == 0;
 				String botChoice = bot_.nextChoice(oldChoices_.get(0), oldChoices_.get(1));
 				oldChoices_.get(1).add(0, botChoice);
 				lastChoice[1] = botChoice;
@@ -359,7 +358,7 @@ public class GameService
 			}
 		}
 		
-		private String[] getResult(String choice1, String choice2, String player1, String player2)
+		protected String[] getResult1Way(String choice1, String choice2, String player1, String player2)
 		{
 			if (choice1.equals(choice2))
 			{
@@ -409,16 +408,22 @@ public class GameService
 			return new String[] {};
 		}
 		
+		protected String[] getResult(String choice1, String choice2, String player1, String player2)
+		{
+			String[] res = getResult1Way(choice1, choice2, player1, player2);
+			if (res.length == 0)
+		    {
+			   res = getResult1Way(choice2, choice1, player2, player1);
+		    }
+			return res;
+		}
+		
 		private boolean sendResult(String choice1, String choice2, String player1, String player2)
 		{
-			String[] res = getResult(choice1, choice2, player1, player2);
+			String[] res = getResult1Way(choice1, choice2, player1, player2);
 			if (res.length == 0)
 			{
 				return false;
-			}
-			if (res[0] == null)
-			{
-			  return false;
 			}
 			sendWin(res[0], res[1]);
 			return true;
@@ -445,13 +450,7 @@ public class GameService
 				GameMessage gameEnd = new GameMessage(ID_, "Finished",
 						winner + " wins. " + scores_[winnerIdx] + " v " + scores_[loserIdx], match_);
 				fireListeners(gameEnd);
-				try
-				{
-					GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
-				} catch (InvalidActionException e)
-				{
-					// Shoudln't get here.
-				}
+				GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
 			}
 		}
 		
@@ -476,10 +475,6 @@ public class GameService
 			if (choices[0] != null && choices[1] != null)
 			{
 			   String[] res = getResult(choices[0], choices[1], match_.getFirst(), match_.getSecond());
-			   if (res.length == 0)
-			   {
-				   res = getResult(choices[1], choices[0], match_.getSecond(), match_.getSecond());
-			   }
 			   msg.setWinner(res[0]);
 			   msg.setDetail2(res[1]);
 			}
