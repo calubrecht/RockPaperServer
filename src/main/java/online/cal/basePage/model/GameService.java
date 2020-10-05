@@ -8,6 +8,8 @@ import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
+import online.cal.basePage.util.*;
+
 @Component("gameService")
 public class GameService
 {
@@ -23,6 +25,8 @@ public class GameService
 	private Map<String, Pair<String>> invitations_ = new HashMap<String, Pair<String>>();
 	
 	private Bot defaultBot_;
+	
+	protected Notifier notifier_ = new Notifier();
 	
 	Thread matchThread_;
 	int threadPollTime_ = 1000;
@@ -43,11 +47,13 @@ public class GameService
 		  public void run() {
 		    while (running_)
 		    {
+
 		    	Pair<String> match = matchPlayers();
 		    	if (match == null)
 		    	{
 		    		try
 					{
+		    	    	notifier_.notifyWaiters();
 						Thread.sleep(threadPollTime_);
 					} catch (InterruptedException e)
 					{
@@ -58,6 +64,7 @@ public class GameService
 		    	else
 		    	{
 		    		startGameAndNotify	(match);
+			    	notifier_.notifyWaiters();
 		    	}
 		    }
 	  }};

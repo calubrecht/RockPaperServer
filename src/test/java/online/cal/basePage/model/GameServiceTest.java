@@ -17,7 +17,12 @@ public class GameServiceTest implements GameListener
 	GameMessage lastMessage_;
 	List<GameMessage> allMessages_;
 	int pollTime = 60;
-	int pollWaitTime = (int)(pollTime * 1.5);
+	
+	
+	private void waitForPoll() throws InterruptedException
+	{
+		  service_.notifier_.waitForNotify();
+	}
 	
 	@Before
 	public void setUp()
@@ -46,10 +51,10 @@ public class GameServiceTest implements GameListener
 	public void testMatch() throws InterruptedException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 1);
         assertTrue(service_.playGame("Bobbo") != null);
         assertTrue(service_.playGame("Frank") != null);
@@ -68,11 +73,11 @@ public class GameServiceTest implements GameListener
 	public void testCancelSeek() throws InterruptedException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
         service_.endSeekGame("Bobbo");
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
 	}
 	
@@ -80,10 +85,10 @@ public class GameServiceTest implements GameListener
 	public void testGame() throws InterruptedException, InvalidActionException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 1);
         assertTrue(service_.playGame("Bobbo") != null);
         assertTrue(service_.playGame("Frank") != null);
@@ -164,10 +169,10 @@ public class GameServiceTest implements GameListener
 	public void testInviteWhileActive() throws InterruptedException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 1);
         
         try
@@ -186,7 +191,7 @@ public class GameServiceTest implements GameListener
 		service_.inviteGame("Bobbo", "Pete");
 		
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         // Bobbo left the seek queue, so Frank's game doesn't start
         assertEquals(service_.activeGames().size(), 0);
 	}
@@ -195,10 +200,10 @@ public class GameServiceTest implements GameListener
 	public void testInvitePlayerInGame() throws InterruptedException, InvalidActionException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(pollWaitTime);
+        waitForPoll();
         assertEquals(service_.activeGames().size(), 1);
         
         clearMessages();
