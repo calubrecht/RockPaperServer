@@ -25,6 +25,7 @@ public class GameService
 	private Bot defaultBot_;
 	
 	Thread matchThread_;
+	int threadPollTime_ = 1000;
 	boolean running_ = true;
 	
 	private final int GAME_LENGTH = 3;
@@ -47,7 +48,7 @@ public class GameService
 		    	{
 		    		try
 					{
-						Thread.sleep(1000);
+						Thread.sleep(threadPollTime_);
 					} catch (InterruptedException e)
 					{
 						// TODO Auto-generated catch block
@@ -173,21 +174,12 @@ public class GameService
 		}
 	}
 	
-	public void recordScore(String id, String winningPlayer, String losingPlayer) throws InvalidActionException
+	private void recordScore(String id, String winningPlayer, String losingPlayer) throws InvalidActionException
 	{
 		ActiveGame game = activeGames_.get(id);
-		if (game == null)
-		{
-			throw new InvalidActionException("Unrecognized game ID");
-		}
 		activeGames_.remove(id);
 		playerGames_.remove(game.getPlayer(0));
 		playerGames_.remove(game.getPlayer(1));
-		if (winningPlayer.contentEquals(losingPlayer))
-		{
-			// Don't record scores for players playing themselves.
-			return;
-		}
 		userService_.recordWin(winningPlayer);
 		userService_.recordLoss(losingPlayer);
 		
@@ -423,58 +415,6 @@ public class GameService
 			}
 			sendWin(res[0], res[1]);
 			return true;
-		/*	if (choice1.equals("rock") && choice2.equals("scissors"))
-            {
-	            sendWin(player1, "Rock smashes scissors.");
-	            return true;
-            }
-			if (choice1.equals("rock") && choice2.equals("lizard"))
-            {
-	            sendWin(player1, "Rock crushes lizard.");
-	            return true;
-            }		
-			if (choice1.equals("scissors") && choice2.equals("paper"))
-            {
-	            sendWin(player1, "Scissors cut paper.");
-	            return true;
-            }
-			if (choice1.equals("scissors") && choice2.equals("lizard"))
-            {
-	            sendWin(player1, "Scissors decapitate lizard.");
-	            return true;
-            }
-			if (choice1.equals("paper") && choice2.equals("rock"))
-            {
-	            sendWin(player1, "Paper covers rock.");
-	            return true;
-            }
-
-			if (choice1.equals("paper") && choice2.equals("spock"))
-          {
-	            sendWin(player1, "Paper disproves Spock.");
-	            return true;
-          }
-			if (choice1.equals("lizard") && choice2.equals("spock"))
-	          {
-		            sendWin(player1, "Lizard poisons Spock.");
-		            return true;
-	          }
-			if (choice1.equals("lizard") && choice2.equals("paper"))
-	          {
-		            sendWin(player1, "Lizard eats paper.");
-		            return true;
-	          }
-			if (choice1.equals("spock") && choice2.equals("rock"))
-	          {
-		            sendWin(player1, "Spock vaporizes rock.");
-		            return true;
-	          }
-			if (choice1.equals("spock") && choice2.equals("scissors"))
-	          {
-		            sendWin(player1, "Spock breaks scissors.");
-		            return true;
-	          }
-			return false;*/
 		}
 		
 		private void sendWin(String winner, String description)

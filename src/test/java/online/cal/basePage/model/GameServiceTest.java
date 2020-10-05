@@ -16,6 +16,8 @@ public class GameServiceTest implements GameListener
 	MockUserService userService_;
 	GameMessage lastMessage_;
 	List<GameMessage> allMessages_;
+	int pollTime = 60;
+	int pollWaitTime = (int)(pollTime * 1.5);
 	
 	@Before
 	public void setUp()
@@ -25,6 +27,7 @@ public class GameServiceTest implements GameListener
 		userService_ = new MockUserService();
 		service_.userService_ = userService_;
 		service_.addListener(this);
+		service_.threadPollTime_ = pollTime;
 		service_.init();
 		allMessages_ = new ArrayList<GameMessage>();
 	}
@@ -36,16 +39,17 @@ public class GameServiceTest implements GameListener
 		service_ = null;
 		userService_ = null;
 		allMessages_ = null;
+		lastMessage_ = null;
 	}
 	
 	@Test
 	public void testMatch() throws InterruptedException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(1500);
+        Thread.sleep(pollWaitTime);
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(1500);
+        Thread.sleep(pollWaitTime);
         assertEquals(service_.activeGames().size(), 1);
         assertTrue(service_.playGame("Bobbo") != null);
         assertTrue(service_.playGame("Frank") != null);
@@ -61,13 +65,25 @@ public class GameServiceTest implements GameListener
 	}
 	
 	@Test
+	public void testCancelSeek() throws InterruptedException
+	{
+        service_.seekGame("Bobbo");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 0);
+        service_.endSeekGame("Bobbo");
+        service_.seekGame("Frank");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 0);
+	}
+	
+	@Test
 	public void testGame() throws InterruptedException, InvalidActionException
 	{
         service_.seekGame("Bobbo");
-        Thread.sleep(1500);
+        Thread.sleep(pollWaitTime);
         assertEquals(service_.activeGames().size(), 0);
         service_.seekGame("Frank");
-        Thread.sleep(1500);
+        Thread.sleep(pollWaitTime);
         assertEquals(service_.activeGames().size(), 1);
         assertTrue(service_.playGame("Bobbo") != null);
         assertTrue(service_.playGame("Frank") != null);
@@ -142,6 +158,59 @@ public class GameServiceTest implements GameListener
 		assertEquals("refuseInvite", lastMessage_.getAction());
 		assertEquals("JoeBob", lastMessage_.getPlayers()[0]);
 		assertEquals(null, lastMessage_.getPlayers()[1]);
+	}
+	
+	@Test
+	public void testInviteWhileActive() throws InterruptedException
+	{
+        service_.seekGame("Bobbo");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 1);
+        
+        try
+		{
+			service_.inviteGame("Bobbo", "Pete");
+			assertTrue("Expected invite to throw if user already in game", false);
+		} catch (InvalidActionException e)
+		{
+		} 
+	}
+	
+	@Test
+	public void testInviteWhileSeeking() throws InterruptedException, InvalidActionException
+	{
+		service_.seekGame("Bobbo");
+		service_.inviteGame("Bobbo", "Pete");
+		
+        service_.seekGame("Frank");
+        Thread.sleep(pollWaitTime);
+        // Bobbo left the seek queue, so Frank's game doesn't start
+        assertEquals(service_.activeGames().size(), 0);
+	}
+	
+	@Test
+	public void testInvitePlayerInGame() throws InterruptedException, InvalidActionException
+	{
+        service_.seekGame("Bobbo");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 0);
+        service_.seekGame("Frank");
+        Thread.sleep(pollWaitTime);
+        assertEquals(service_.activeGames().size(), 1);
+        
+        clearMessages();
+		service_.inviteGame("Pete", "Bobbo");
+		assertEquals("refuseInvite", lastMessage_.getAction());
+        
+	}
+	
+	private void clearMessages()
+	{
+		allMessages_.clear();
+		lastMessage_ = null;
 	}
 
 	private class MockUserService extends BasePageUserService
