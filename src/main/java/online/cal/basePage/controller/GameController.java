@@ -39,6 +39,13 @@ public class GameController
 			
 	}
 	
+	@RequestMapping(value=GAME + "resendActive", method =RequestMethod.POST)
+	public void resendActive(Principal p )
+	{
+		gameService_.resendActive(p.getName());
+			
+	}
+	
 	@RequestMapping(value=GAME + "cancel", method =RequestMethod.POST)
 	public GameMessage cancelGame(Principal p, @RequestBody GameMessage gm)
 	{

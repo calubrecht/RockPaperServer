@@ -12,6 +12,8 @@ public class GameMessage
 	public String action_;
 	@JsonProperty("detail")
 	public String detail_;
+	@JsonProperty("detail2")
+	public String detail2_;
 	@JsonIgnore
 	private Pair<String> playerPair_;
 	@JsonProperty("choices")
@@ -76,6 +78,21 @@ public class GameMessage
 	public String getDetail()
 	{
 		return detail_;
+	}
+
+	public String getDetail2()
+	{
+		return detail2_;
+	}
+	
+	public void setDetail(String detail)
+	{
+	  detail_ = detail;
+	}
+	
+	public void setDetail2(String detail2)
+	{
+	  detail2_ = detail2;
 	}
 
 	public int[] getScores()

@@ -164,6 +164,15 @@ public class GameService
 		}
 	}
 	
+	public void resendActive(String id)
+	{
+		ActiveGame game = playerGames_.get(id);
+		if (game != null)
+		{
+			game.sendStatus(id);
+		}
+	}
+	
 	public void recordScore(String id, String winningPlayer, String losingPlayer) throws InvalidActionException
 	{
 		ActiveGame game = activeGames_.get(id);
@@ -273,6 +282,7 @@ public class GameService
 		
 		int[] points_ = new int[2];
 		String[] lastChoice = new String[2];
+		String[] prevChoice = new String[2];
 		List<List<String>> oldChoices_ = new ArrayList<List<String>>();
 		Bot bot_;
 		
@@ -338,7 +348,8 @@ public class GameService
 			{
 				// Tie. Try again			
 				GameMessage gm = new GameMessage(ID_,  "TIE", "Tie!", match_);
-				gm.setChoices(lastChoice.clone());
+				prevChoice = lastChoice.clone();
+				gm.setChoices(prevChoice);
 				lastChoice[0] = lastChoice[1] = null;
 				fireListeners(gm);
 				return;
@@ -349,9 +360,70 @@ public class GameService
 			}
 		}
 		
+		private String[] getResult(String choice1, String choice2, String player1, String player2)
+		{
+			if (choice1.equals(choice2))
+			{
+				return new String[] {null, "Tie!"};
+			}
+			if (choice1.equals("rock") && choice2.equals("scissors"))
+            {
+				return new String[] {player1, "Rock smashes scissors."};
+            }
+			if (choice1.equals("rock") && choice2.equals("lizard"))
+            {
+				return new String[] {player1,  "Rock crushes lizard."};
+            }		
+			if (choice1.equals("scissors") && choice2.equals("paper"))
+            {
+	            return new String[] {player1, "Scissors cut paper."};
+            }
+			if (choice1.equals("scissors") && choice2.equals("lizard"))
+            {
+	            return new String[] {player1, "Scissors decapitate lizard."};
+            }
+			if (choice1.equals("paper") && choice2.equals("rock"))
+            {
+	            return new String[] {player1, "Paper covers rock."};
+            }
+
+			if (choice1.equals("paper") && choice2.equals("spock"))
+          {
+	            return new String[] {player1, "Paper disproves Spock."};
+          }
+			if (choice1.equals("lizard") && choice2.equals("spock"))
+	          {
+		            return new String[] {player1, "Lizard poisons Spock."};
+	          }
+			if (choice1.equals("lizard") && choice2.equals("paper"))
+	          {
+		            return new String[] {player1, "Lizard eats paper."};
+	          }
+			if (choice1.equals("spock") && choice2.equals("rock"))
+	          {
+		            return new String[] {player1, "Spock vaporizes rock."};
+	          }
+			if (choice1.equals("spock") && choice2.equals("scissors"))
+	          {
+		            return new String[] {player1, "Spock breaks scissors."};
+	          }
+			return new String[] {};
+		}
+		
 		private boolean sendResult(String choice1, String choice2, String player1, String player2)
 		{
-			if (choice1.equals("rock") && choice2.equals("scissors"))
+			String[] res = getResult(choice1, choice2, player1, player2);
+			if (res.length == 0)
+			{
+				return false;
+			}
+			if (res[0] == null)
+			{
+			  return false;
+			}
+			sendWin(res[0], res[1]);
+			return true;
+		/*	if (choice1.equals("rock") && choice2.equals("scissors"))
             {
 	            sendWin(player1, "Rock smashes scissors.");
 	            return true;
@@ -402,7 +474,7 @@ public class GameService
 		            sendWin(player1, "Spock breaks scissors.");
 		            return true;
 	          }
-			return false;
+			return false;*/
 		}
 		
 		private void sendWin(String winner, String description)
@@ -410,7 +482,8 @@ public class GameService
 			round++;
 			scores_[playerMap_.get(winner)]++;
 			GameMessage gm = new GameMessage(ID_, "point", description, match_);
-			gm.setChoices(lastChoice.clone());
+			prevChoice = lastChoice.clone();
+			gm.setChoices(prevChoice);
 			gm.setWinner(winner);
 			gm.setRound(round);
 			gm.setScores(scores_);
@@ -433,6 +506,38 @@ public class GameService
 					// Shoudln't get here.
 				}
 			}
+		}
+		
+		public synchronized void sendStatus(String player)
+		{
+			GameMessage msg = new GameMessage(ID_, "resendGame", description_, match_);
+			msg.setDeliverTo(new String[]{ player });
+			msg.setScores(scores_);
+			msg.setRound(round);
+			String[] choices = new String[2];
+			int playerIdx = playerMap_.get(player);
+			int oppId = playerIdx == 0 ? 1 : 0;
+			if (lastChoice[playerIdx] == null)
+			{
+				choices = prevChoice.clone();
+			}
+			else
+			{
+				choices[playerIdx] = lastChoice[playerIdx];
+			}
+			msg.setChoices(choices);
+			if (choices[0] != null && choices[1] != null)
+			{
+			   String[] res = getResult(choices[0], choices[1], match_.getFirst(), match_.getSecond());
+			   if (res.length == 0)
+			   {
+				   res = getResult(choices[1], choices[0], match_.getSecond(), match_.getSecond());
+			   }
+			   msg.setWinner(res[0]);
+			   msg.setDetail2(res[1]);
+			}
+			// Check for a result
+			fireListeners(msg);
 		}
 		
 		public String getID()
