@@ -4,6 +4,7 @@ package online.cal.basePage.model;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+import java.time.temporal.*;
 import java.util.*;
 
 import org.bson.*;
@@ -11,7 +12,6 @@ import org.junit.*;
 import org.junit.runner.*;
 import org.mockito.*;
 import org.mockito.junit.*;
-import org.springframework.boot.test.mock.mockito.*;
 
 import com.mongodb.client.*;
 
@@ -96,5 +96,42 @@ public class ChatStoreTest
        assertEquals("Mary", msgs.get(3).getUserName());
        assertEquals("Nowhere", msgs.get(3).getChatText());
        
+	}
+	
+	@Test
+	public void testGetChatMessagesSince()
+	{
+	  store_.addChat(new ChatMessage("Frank", "MEssage1"));
+	  store_.addChat(new ChatMessage("Frank", "MEssage2"));
+	  store_.addChat(new ChatMessage("Amanda", "What?"));
+	  store_.addChat(new ChatMessage("Bob", "Other Message"));
+	  
+	  
+	  List<ChatMessage> msgs = store_.getChatMessagesSince(1l);
+	  
+	  assertEquals(2, msgs.size());
+	  assertEquals("What?", msgs.get(0).getChatText());
+	  assertEquals("Other Message", msgs.get(1).getChatText());
+	}
+	
+	@Test
+	public void testCullOldSystemMessages()
+	{
+		Date sixtyTwoMinutesAgo = Date.from(new Date().toInstant().minus(62, ChronoUnit.MINUTES));
+		ChatMessage oldSystemMessage = new ChatMessage(ChatMessage.SYSTEM, "Too Old");
+		oldSystemMessage.dt_ = sixtyTwoMinutesAgo;
+		ChatMessage newSystemMessage = new ChatMessage(ChatMessage.SYSTEM, "Not Too Old");
+		ChatMessage oldRealMessage = new ChatMessage("Frank", "Old but who careas");
+		oldRealMessage.dt_ = sixtyTwoMinutesAgo;
+		
+		store_.addChat(oldSystemMessage);
+		store_.addChat(newSystemMessage);
+		store_.addChat(oldRealMessage);
+		
+		store_.cullOldSystemMessages();
+		List<ChatMessage> msgs = store_.getChatMessages();
+		assertEquals(2, msgs.size());
+		assertEquals("Not Too Old", msgs.get(0).getChatText());
+		assertEquals("Old but who careas", msgs.get(1).getChatText());
 	}
 }

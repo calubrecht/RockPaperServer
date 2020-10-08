@@ -13,7 +13,7 @@ public class ChatMessage
     @JsonProperty("msgID") private long msgID_;
     
     
-    @JsonIgnore private Date dt_;
+    @JsonIgnore protected Date dt_;
     
     public ChatMessage() {}
     
