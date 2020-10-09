@@ -1,6 +1,9 @@
 package online.cal.basePage.model;
 
+import java.security.*;
+import java.security.spec.*;
 import java.util.*;
+import java.util.function.*;
 
 import javax.annotation.*;
 
@@ -29,6 +32,8 @@ public class BasePageUserService
 	DBStore dbStore_;
 	@Autowired
 	ChatStore chatStore_;
+	
+	Function<String, String> tokenGenerator_ = userName -> JwtUtils.generateToken(userName);
 
 	int guestCount = 0;
 
@@ -43,6 +48,13 @@ public class BasePageUserService
 		securityService_ = securityService;
 		assert INSTANCE == null;
 		INSTANCE = this;
+	}
+	
+	public BasePageUserService(WebSecurityConfig securityService, DBStore dbStore, ChatStore chatStore)
+	{
+		this(securityService);
+		dbStore_ = dbStore;
+	    chatStore_ = chatStore;
 	}
 
 	@PostConstruct
@@ -84,19 +96,16 @@ public class BasePageUserService
 		String password = user.getPassword();
 		String color = user.getColor();
 		
-		byte[] salt = BasePageUser.generateSalt();
 		try
 		{
-			String hash = BasePageUser.hashPassword(password, salt);
-			String saltString = Base64.getEncoder().encodeToString(salt);
-			BasePageUser newUser = new BasePageUser(userName, hash, saltString);
+			BasePageUser newUser = generateUser(userName, password);
 			newUser.setColor(color);
 			storeUser(newUser);
 		
 			
 			
 			users_.put(userName,  newUser);
-			String tok = JwtUtils.generateToken(userName);
+			String tok = tokenGenerator_.apply(userName);
 			return new UserMessage(userName, tok);
 			
 		}
@@ -106,6 +115,15 @@ public class BasePageUserService
 		}
 		
 
+	}
+	
+	protected BasePageUser generateUser(String userName, String plaintextPassword) throws InvalidKeySpecException, NoSuchAlgorithmException
+	{
+		byte[] salt = BasePageUser.generateSalt();
+		String hash = BasePageUser.hashPassword(plaintextPassword, salt);
+		String saltString = Base64.getEncoder().encodeToString(salt);
+		BasePageUser newUser = new BasePageUser(userName, hash, saltString);
+		return newUser;
 	}
 	
 	private void storeUser(BasePageUser user)
