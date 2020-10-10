@@ -79,15 +79,17 @@ public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	
 	public static class GuestAuthFilter extends JsonAuthenticationFilter
 	{
-		GuestAuthFilter(String path, AuthenticationManager mgr)
+		BasePageUserService userService_;
+		GuestAuthFilter(String path, AuthenticationManager mgr, BasePageUserService userService)
 		{
 			super(path, mgr);
+			userService_ = userService;
 		}
 		
 		@Override
 		protected UsernamePasswordAuthenticationToken getAuthToken(HttpServletRequest request) throws IOException
 		{
-			String username = BasePageUserService.getService().createGuest();
+			String username =  userService_.createGuest();
 			String password = "";
 			// TODO Auto-generated method stub
 			UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(

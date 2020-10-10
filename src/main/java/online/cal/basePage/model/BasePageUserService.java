@@ -37,12 +37,6 @@ public class BasePageUserService
 	Function<String, String> tokenGenerator_ = userName -> JwtUtils.generateToken(userName);
 
 	int guestCount = 0;
-
-	public static BasePageUserService getService()
-	{
-		assert INSTANCE != null;
-		return INSTANCE;
-	}
 	
 	public BasePageUserService(DBStore dbStore, ChatStore chatStore)
 	{

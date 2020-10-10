@@ -20,6 +20,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
     @Autowired
     AuthenticationManager authenticationManager;
+    
+    @Autowired
+    BasePageUserService userService_;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception
@@ -40,7 +43,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 				.antMatchers("/api/v1/**").hasRole("USER");
 		JsonAuthenticationFilter filter = new JsonAuthenticationFilter(AppConstants.API_PATH + SessionController.SESSION + "login", authenticationManager);
 		http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
-		JsonAuthenticationFilter.GuestAuthFilter guestFilter = new JsonAuthenticationFilter.GuestAuthFilter(AppConstants.API_PATH + SessionController.SESSION + "loginGuest", authenticationManager);
+		JsonAuthenticationFilter.GuestAuthFilter guestFilter = new JsonAuthenticationFilter.GuestAuthFilter(AppConstants.API_PATH + SessionController.SESSION + "loginGuest", authenticationManager,  userService_);
 		http.addFilterBefore(guestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	

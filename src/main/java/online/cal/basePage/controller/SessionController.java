@@ -22,6 +22,9 @@ public class SessionController
 	public static final String SESSION = "sessions/";
     @Autowired
     AuthenticationManager authenticationManager;
+    
+    @Autowired
+    BasePageUserService userService_;
 	
 	@RequestMapping(SESSION + "userName")
 	public String userName()
@@ -72,7 +75,7 @@ public class SessionController
     	BasePageUser bpu = new BasePageUser(user.userName, user.password);
     	bpu.setColor(user.color);
         return new ResponseEntity<UserMessage>(
-    			  BasePageUserService.getService().register(bpu),
+        		  userService_.register(bpu),
     			  HttpStatus.OK);  
       }
       catch (AuthenticationException ae)
