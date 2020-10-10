@@ -86,6 +86,7 @@ public class WSController implements ChatListener, GameListener, BasePageUserSer
 		 {
 			 return null;
 		 }
+		 logger.info("onUserSubscribe " + token.getPrincipal());
 	     return userService_.getUser(token.getPrincipal().toString());
 	}
 
