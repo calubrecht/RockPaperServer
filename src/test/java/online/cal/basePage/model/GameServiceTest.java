@@ -522,7 +522,7 @@ public class GameServiceTest implements GameListener
 		Map<String, Integer> losses_ = new HashMap<String, Integer>();
 		public MockUserService()
 		{
-			super(null);
+			super(null, null);
 		}
 
 		@Override

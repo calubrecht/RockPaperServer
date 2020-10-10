@@ -21,7 +21,6 @@ import online.cal.basePage.*;
 public class BasePageUserService
 {
 	static BasePageUserService INSTANCE;
-	WebSecurityConfig securityService_;
 	Map<String, BasePageUser> users_ = new HashMap<String, BasePageUser>();
 	Map<String, String> userStatuses_ = new HashMap<String, String>();
 	List<UserListener> listeners_ = new ArrayList<UserListener>();
@@ -42,17 +41,9 @@ public class BasePageUserService
 		assert INSTANCE != null;
 		return INSTANCE;
 	}
-
-	public BasePageUserService(WebSecurityConfig securityService)
-	{
-		securityService_ = securityService;
-		assert INSTANCE == null;
-		INSTANCE = this;
-	}
 	
-	public BasePageUserService(WebSecurityConfig securityService, DBStore dbStore, ChatStore chatStore)
+	public BasePageUserService(DBStore dbStore, ChatStore chatStore)
 	{
-		this(securityService);
 		dbStore_ = dbStore;
 	    chatStore_ = chatStore;
 	}
@@ -271,7 +262,7 @@ public class BasePageUserService
 			@Override
 			public void run()
 			{
-				fireListeners(bpu);
+			//	fireListeners(bpu);
 
 			}
 		}, 2000);

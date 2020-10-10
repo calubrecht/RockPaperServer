@@ -18,7 +18,6 @@ import online.cal.basePage.model.*;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
-	BasePageUserService service_ = new BasePageUserService(this);
     @Autowired
     AuthenticationManager authenticationManager;
 

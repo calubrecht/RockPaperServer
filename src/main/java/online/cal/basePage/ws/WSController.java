@@ -75,6 +75,11 @@ public class WSController implements ChatListener, GameListener, BasePageUserSer
 	{
 		template_.convertAndSend("/topic/users", bpu);
 	}
+	
+	/*@SubscribeMapping("/topic/users")
+	public List<Employee> list() {
+	     return getEmployees();
+	}*/
 
 	public void onGameMessage(GameMessage msg)
 	{
