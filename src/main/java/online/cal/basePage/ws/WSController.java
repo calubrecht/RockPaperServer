@@ -1,13 +1,16 @@
 package online.cal.basePage.ws;
 
 import java.security.*;
+import java.util.*;
 
 import javax.annotation.*;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.*;
+import org.springframework.messaging.simp.annotation.*;
 import org.springframework.messaging.support.*;
+import org.springframework.security.authentication.*;
 import org.springframework.stereotype.*;
 
 import org.slf4j.Logger;
@@ -76,10 +79,15 @@ public class WSController implements ChatListener, GameListener, BasePageUserSer
 		template_.convertAndSend("/topic/users", bpu);
 	}
 	
-	/*@SubscribeMapping("/topic/users")
-	public List<Employee> list() {
-	     return getEmployees();
-	}*/
+	@SubscribeMapping("/topic/users")
+	public BasePageUser onUserSubscribe(@Headers Map<String, Object> headers) {
+		 UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken)headers.get("simpUser");
+		 if (token == null)
+		 {
+			 return null;
+		 }
+	     return userService_.getUser(token.getPrincipal().toString());
+	}
 
 	public void onGameMessage(GameMessage msg)
 	{

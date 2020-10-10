@@ -8,6 +8,7 @@ import java.util.function.*;
 import javax.annotation.*;
 
 import org.bson.Document;
+import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.security.core.*;
 import org.springframework.stereotype.*;
@@ -20,6 +21,7 @@ import online.cal.basePage.*;
 @Component
 public class BasePageUserService
 {
+    Logger logger_ = LoggerFactory.getLogger(getClass());
 	static BasePageUserService INSTANCE;
 	Map<String, BasePageUser> users_ = new HashMap<String, BasePageUser>();
 	Map<String, String> userStatuses_ = new HashMap<String, String>();
@@ -177,7 +179,7 @@ public class BasePageUserService
 
 	public BasePageUser getUser(String name)
 	{
-		return users_.get(name);
+		return addStatus(users_.get(name));
 	}
 	
 	private String getStatus(String name)
@@ -243,6 +245,7 @@ public class BasePageUserService
 
 	public synchronized void onConnect(String userName, String clientSesssionID)
 	{
+		logger_.info("onConnect " + userName);
 		String currStatus = userStatuses_.get(userName);
 		if (currStatus == null || currStatus.equals("DISCONNECTED"))
 		{
@@ -256,17 +259,6 @@ public class BasePageUserService
 		}
 		final BasePageUser bpu = addStatus(users_.get(userName));
 		fireListeners(bpu);
-		// Resend after delay, so user can pick up their own user.
-		delayTimer_.schedule(new TimerTask() {
-
-			@Override
-			public void run()
-			{
-			//	fireListeners(bpu);
-
-			}
-		}, 2000);
-		
 	}
 
 	public synchronized void onDisconnect(String userName, String clientSessionID)
