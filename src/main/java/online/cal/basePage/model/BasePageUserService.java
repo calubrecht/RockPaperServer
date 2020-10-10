@@ -234,7 +234,7 @@ public class BasePageUserService
 	private BasePageUser addStatus(BasePageUser user)
 	{
 		BasePageUser temp = new BasePageUser(user);
-		temp.setStatus(userStatuses_.get(temp.getUserName()));
+		temp.setStatus(getStatus(user.getUserName()));
 		return temp;
 	}
 

@@ -1,5 +1,6 @@
 package online.cal.basePage.model;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.security.*;
@@ -12,10 +13,13 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.bson.*;
 import org.junit.*;
 import org.junit.runner.*;
 import org.mockito.*;
 import org.mockito.junit.*;
+
+import com.mongodb.client.*;
 
 import online.cal.basePage.*;
 import online.cal.basePage.model.BasePageUserService.*;
@@ -127,6 +131,10 @@ public class BasePageUserServiceTest
 		assertEquals("Guest-3", userMsgs.get(0).getUserName());
 		assertTrue( userMsgs.get(0).isGuest());
 		assertEquals(3, underTest_.guestCount);
+		
+		underTest_.onConnect("Blrgl-poop", null);
+		verify(chatStore_, times(2)).sendSystemMessage(msgCaptor.capture());
+		assertEquals("Blrgl-poop has joined.", msgCaptor.getValue());
 	}
 	
 	@Test
@@ -137,10 +145,12 @@ public class BasePageUserServiceTest
 		underTest_.userStatuses_.put("Bob", "CONNECTED");
 		underTest_.onDisconnect("Bob",  null);
 		assertEquals("DISCONNECTING", underTest_.userStatuses_.get("Bob"));
+		assertEquals("CONNECTED", underTest_.getUser("Bob").getStatus());
 		underTest_.onDisconnect("Bob",  null);
 		assertEquals("DISCONNECTING", underTest_.userStatuses_.get("Bob"));
 		underTest_.checkDisconnect("Bob", null);
 		assertEquals("DISCONNECTED", underTest_.userStatuses_.get("Bob"));
+		assertEquals("DISCONNECTED", underTest_.getUser("Bob").getStatus());
 		ArgumentCaptor<String> msgCaptor = ArgumentCaptor.forClass(String.class);
 		verify(chatStore_, times(1)).sendSystemMessage(msgCaptor.capture());
 		assertEquals("Bob has left.", msgCaptor.getValue());
@@ -162,4 +172,94 @@ public class BasePageUserServiceTest
 		assertTrue(user.validatePassword("FakePass"));
 	}
 
+	private Document parse(String json)
+	{
+		Document doc = Document.parse(json);
+		if (doc.containsKey("wins"))
+		{
+		  doc.put("wins", doc.getInteger("wins").longValue());
+		}
+		if (doc.containsKey("losses"))
+		{
+		  doc.put("losses", doc.getInteger("losses").longValue());
+		}
+		return doc;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testLoadUsers()
+	{
+		MongoCollection<Document> collection = Mockito.mock(MongoCollection.class);
+		when(dbStore_.getCollection("users")).thenReturn(collection);
+		FindIterable<Document> find = Mockito.mock(FindIterable.class);
+		when(collection.find()).thenReturn(find);
+		List<Document> userDocuments = new ArrayList<>();
+		userDocuments.add(parse(
+				"{\"userName\":\"Bobo\", \"passwordHash\":\"hashhash\", \"passwordSalt\":\"saltsalt\", \"wins\":5, \"losses\":12, \"color\":\"green\"}"));
+		userDocuments.add(parse(
+				"{\"userName\":\"Woody\", \"passwordHash\":\"hashhash\", \"passwordSalt\":\"saltsalt\", \"color\":\"taupe\"}"));
+		Iterator<Document> itr = userDocuments.iterator();
+		MongoCursor<Document> cursor = Mockito.mock(MongoCursor.class);
+		when(find.iterator()).thenReturn(cursor);
+		when(cursor.hasNext()).thenAnswer(i -> itr.hasNext());
+		when(cursor.next()).thenAnswer(i -> itr.next());
+
+		underTest_.init();
+
+		assertEquals(5l, underTest_.getUser("Bobo").getWins());
+		assertEquals(0l, underTest_.getUser("Woody").getWins());
+	}
+	
+	
+	@Test
+	public void testCreateGuest()
+	{
+		assertEquals("Guest-1", underTest_.createGuest());
+		assertEquals("Guest-2", underTest_.createGuest());
+		
+		assertTrue(underTest_.getUser("Guest-1").isGuest());
+		assertTrue(underTest_.getUser("Guest-2").isGuest());
+	}
+	
+	@Test
+	public void testRecordRecords()
+	{
+		underTest_.users_.put("Bob", new BasePageUser("Bob", null));
+		underTest_.users_.put("Jo",  new BasePageUser("Jo", null));
+		underTest_.users_.put("Guest-1", new BasePageUser("Guest-1", null));
+		
+		List<BasePageUser> userMsgs = new ArrayList<>();
+		underTest_.addListener(bpu -> userMsgs.add(bpu));
+		// 	dbStore_.update("users", query, update);
+		ArgumentCaptor<Document> docCaptor = ArgumentCaptor.forClass(Document.class);
+		doNothing().when(dbStore_).update(eq("users"), any(), docCaptor.capture());
+		
+		underTest_.recordWin("Bob");
+		underTest_.recordLoss("Jo");
+		assertEquals(1l, docCaptor.getAllValues().get(0).get("wins"));
+		assertEquals("Bob", userMsgs.get(0).getUserName());
+		assertEquals(1l, userMsgs.get(0).getWins());
+		assertEquals(0l, userMsgs.get(0).getLosses());
+		
+		assertEquals(1l, docCaptor.getAllValues().get(1).get("losses"));
+		assertEquals("Jo", userMsgs.get(1).getUserName());
+		assertEquals(0l, userMsgs.get(1).getWins());
+		assertEquals(1l, userMsgs.get(1).getLosses());
+		
+		underTest_.recordWin("AI - 1");
+		underTest_.recordLoss("AI - 1");
+		assertEquals(2, docCaptor.getAllValues().size());
+		assertEquals(2, userMsgs.size());
+		
+		underTest_.recordWin("Guest-1");
+		underTest_.recordLoss("Guest-1");
+		assertEquals(2, docCaptor.getAllValues().size());
+		assertEquals("Guest-1", userMsgs.get(2).getUserName());
+		assertEquals(1l, userMsgs.get(2).getWins());
+		assertEquals(0l, userMsgs.get(2).getLosses());
+		assertEquals("Guest-1", userMsgs.get(3).getUserName());
+		assertEquals(1l, userMsgs.get(3).getWins());
+		assertEquals(1l, userMsgs.get(3).getLosses());
+	}
 }
