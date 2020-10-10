@@ -179,7 +179,8 @@ public class BasePageUserService
 
 	public BasePageUser getUser(String name)
 	{
-		return addStatus(users_.get(name));
+		BasePageUser rawUser = users_.get(name);
+		return rawUser == null ? null : addStatus(rawUser);
 	}
 	
 	private String getStatus(String name)
