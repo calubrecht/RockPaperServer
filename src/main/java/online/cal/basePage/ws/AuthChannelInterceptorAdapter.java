@@ -13,17 +13,19 @@ import org.springframework.stereotype.*;
 
 import com.auth0.jwt.exceptions.*;
 
+import online.cal.basePage.*;
 import online.cal.basePage.JwtUtils.*;
 import online.cal.basePage.model.*;
 
 @Component
-public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
+public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
     Logger logger = LoggerFactory.getLogger(getClass());
 	@Autowired
 	WSSessionService sessionService_;
 	
 	@Autowired WSController wsController_;
 	@Autowired BasePageUserService userService_;
+	@Autowired JwtUtils jwtUtils_;
 
     @Override
     public Message<?> preSend(final Message<?> message, final MessageChannel channel) throws AuthenticationException {
@@ -41,9 +43,8 @@ public class AuthChannelInterceptorAdapter extends ChannelInterceptorAdapter {
 
 			try
 			{
-				JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken);
+				JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken, jwtUtils_);
 
-				authRequest.validate();
 				String userName = authRequest.getName();
 			    final UsernamePasswordAuthenticationToken user = 
 	            		new UsernamePasswordAuthenticationToken(

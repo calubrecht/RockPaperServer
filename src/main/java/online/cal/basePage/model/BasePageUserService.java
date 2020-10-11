@@ -33,8 +33,10 @@ public class BasePageUserService
 	DBStore dbStore_;
 	@Autowired
 	ChatStore chatStore_;
+	@Autowired
+	JwtUtils jwtUtils_;
 	
-	Function<String, String> tokenGenerator_ = userName -> JwtUtils.generateToken(userName);
+	Function<String, String> tokenGenerator_ = userName -> jwtUtils_.generateToken(userName);
 
 	int guestCount = 0;
 	

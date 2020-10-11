@@ -23,12 +23,12 @@ import online.cal.basePage.model.BasePageUserService.*;
 public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFilter
 {
     
-	protected JsonAuthenticationFilter(String defaultFilterProcessesUrl, AuthenticationManager mgr)
+	protected JsonAuthenticationFilter(String defaultFilterProcessesUrl, AuthenticationManager mgr, JwtUtils jwtUtils)
 	{
 		super(defaultFilterProcessesUrl);
 		setAuthenticationManager(mgr);
 		setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
-		setAuthenticationSuccessHandler(new JsonSuccessHandler());
+		setAuthenticationSuccessHandler(new JsonSuccessHandler(jwtUtils));
 	}
 
 	@Override
@@ -62,12 +62,18 @@ public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	
 	private static class JsonSuccessHandler implements AuthenticationSuccessHandler
 	{
+		JwtUtils jwtUtils;
+		
+		JsonSuccessHandler(JwtUtils jwtUtils)
+		{
+			this.jwtUtils = jwtUtils;
+		}
 
 		@Override
 		public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 				Authentication authentication) throws IOException, ServletException
 		{
-			 String tok = JwtUtils.generateToken(authentication.getName());
+			 String tok = jwtUtils.generateToken(authentication.getName());
 			 HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response);
 		        Writer out = responseWrapper.getWriter();
 		        out.write("{\"userName\": \"" + authentication.getName() + "\", \"token\":\"" + tok + "\"}");
@@ -80,9 +86,9 @@ public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	public static class GuestAuthFilter extends JsonAuthenticationFilter
 	{
 		BasePageUserService userService_;
-		GuestAuthFilter(String path, AuthenticationManager mgr, BasePageUserService userService)
+		GuestAuthFilter(String path, AuthenticationManager mgr, BasePageUserService userService, JwtUtils jwtUtils)
 		{
-			super(path, mgr);
+			super(path, mgr, jwtUtils);
 			userService_ = userService;
 		}
 		

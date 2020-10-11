@@ -23,6 +23,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
     
     @Autowired
     BasePageUserService userService_;
+    
+    @Autowired
+	JwtUtils jwtUtils;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception
@@ -35,15 +38,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 						new AntPathRequestMatcher("/api/v1/sessions/loginGuest"),
 						new AntPathRequestMatcher("/api/v1/sessions/register"),
 						new AntPathRequestMatcher("/api/v1/sessions/init"),
-						new AntPathRequestMatcher("/socket/**"),
+//						new AntPathRequestMatcher("/socket/**"),
 						new AntPathRequestMatcher("/error"),
 						new AntPathRequestMatcher("/lyrics"),
 						// Ignore for CORS requests
 						new AntPathRequestMatcher("/**", HttpMethod.OPTIONS.asString())).permitAll()
 				.antMatchers("/api/v1/**").hasRole("USER");
-		JsonAuthenticationFilter filter = new JsonAuthenticationFilter(AppConstants.API_PATH + SessionController.SESSION + "login", authenticationManager);
+		JsonAuthenticationFilter filter = new JsonAuthenticationFilter(AppConstants.API_PATH + SessionController.SESSION + "login", authenticationManager, jwtUtils);
 		http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
-		JsonAuthenticationFilter.GuestAuthFilter guestFilter = new JsonAuthenticationFilter.GuestAuthFilter(AppConstants.API_PATH + SessionController.SESSION + "loginGuest", authenticationManager,  userService_);
+		JsonAuthenticationFilter.GuestAuthFilter guestFilter = new JsonAuthenticationFilter.GuestAuthFilter(AppConstants.API_PATH + SessionController.SESSION + "loginGuest", authenticationManager,  userService_, jwtUtils);
 		http.addFilterBefore(guestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
