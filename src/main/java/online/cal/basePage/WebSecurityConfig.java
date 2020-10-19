@@ -38,6 +38,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 						new AntPathRequestMatcher("/api/v1/sessions/loginGuest"),
 						new AntPathRequestMatcher("/api/v1/sessions/register"),
 						new AntPathRequestMatcher("/api/v1/sessions/init"),
+						new AntPathRequestMatcher("/api/v1/version"),
 //						new AntPathRequestMatcher("/socket/**"),
 						new AntPathRequestMatcher("/error"),
 						new AntPathRequestMatcher("/lyrics"),
