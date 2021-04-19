@@ -54,11 +54,6 @@ public class BasePageUser
 		wins_ = u.wins_;
 		losses_ = u.losses_;
 	}
-
-	public boolean isLoggedIn()
-	{
-		return false;
-	}
 	
 	public boolean isGuest()
 	{

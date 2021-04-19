@@ -46,7 +46,7 @@ public class GameMessage
 			return null;
 		}
 		return new String[]
-		{ playerPair_.getFirst(), playerPair_.getSecond() };
+		{ playerPair_.first(), playerPair_.second() };
 	}
 
 	@JsonProperty("players")

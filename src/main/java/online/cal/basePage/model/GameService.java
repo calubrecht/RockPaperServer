@@ -97,7 +97,7 @@ public class GameService
 	public synchronized void startAIGame(String name)
 	{
 		Pair<String> match = new Pair<String>(name, "AI - Player");
-		ActiveGame game = new ActiveGame(makeID(), makeGameDesc(match.getFirst(), match.getSecond()), match);
+		ActiveGame game = new ActiveGame(makeID(), makeGameDesc(match.first(), match.second()), match);
 		activeGames_.put(game.getID(), game);
 		playerGames_.put(game.getPlayer(0), game);
 		game.setBot(defaultBot_);
@@ -155,8 +155,8 @@ public class GameService
 	public synchronized void acceptInvite(String id)
 	{
 		Pair<String> invitedGame = invitations_.get(id);
-		GameMessage gm = new GameMessage(id, "acceptedInvite", makeGameDesc(invitedGame.getFirst(), invitedGame.getSecond()), new Pair<String>(invitedGame.getFirst(), invitedGame.getSecond())); 
-		gm.setDeliverTo(new String[] {invitedGame.getFirst()});
+		GameMessage gm = new GameMessage(id, "acceptedInvite", makeGameDesc(invitedGame.first(), invitedGame.second()), new Pair<String>(invitedGame.first(), invitedGame.second())); 
+		gm.setDeliverTo(new String[] {invitedGame.first()});
 		fireListeners(gm);
 		invitations_.remove(id);
 		if (invitedGame != null)
@@ -221,7 +221,7 @@ public class GameService
 	
 	public ActiveGame startGame(String id, Pair<String> match)
 	{
-		ActiveGame game = new ActiveGame(id, makeGameDesc(match.getFirst(), match.getSecond()), match);
+		ActiveGame game = new ActiveGame(id, makeGameDesc(match.first(), match.second()), match);
 		activeGames_.put(game.getID(), game);
 		playerGames_.put(game.getPlayer(0), game);
 		playerGames_.put(game.getPlayer(1), game);	
@@ -283,8 +283,8 @@ public class GameService
 			ID_ = ID;
 			description_ = description;
 			match_ = match;
-			playerMap_.put(match.getFirst(),  0);
-			playerMap_.put(match.getSecond(),  1);
+			playerMap_.put(match.first(),  0);
+			playerMap_.put(match.second(),  1);
 			oldChoices_.add(new ArrayList<String>());
 			oldChoices_.add(new ArrayList<String>());
 		}
@@ -345,9 +345,9 @@ public class GameService
 				fireListeners(gm);
 				return;
 			}
-			if (!sendResult(lastChoice[0], lastChoice[1], match_.getFirst(), match_.getSecond()))
+			if (!sendResult(lastChoice[0], lastChoice[1], match_.first(), match_.second()))
 			{
-				sendResult(lastChoice[1], lastChoice[0], match_.getSecond(), match_.getFirst());
+				sendResult(lastChoice[1], lastChoice[0], match_.second(), match_.first());
 			}
 		}
 		
@@ -443,7 +443,7 @@ public class GameService
 				GameMessage gameEnd = new GameMessage(ID_, "Finished",
 						winner + " wins. " + scores_[winnerIdx] + " v " + scores_[loserIdx], match_);
 				fireListeners(gameEnd);
-				GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.getFirst() : match_.getSecond());
+				GameService.this.recordScore(ID_, winner, loserIdx == 0 ? match_.first() : match_.second());
 			}
 		}
 		
@@ -467,7 +467,7 @@ public class GameService
 			msg.setChoices(choices);
 			if (choices[0] != null && choices[1] != null)
 			{
-			   String[] res = getResult(choices[0], choices[1], match_.getFirst(), match_.getSecond());
+			   String[] res = getResult(choices[0], choices[1], match_.first(), match_.second());
 			   msg.setWinner(res[0]);
 			   msg.setDetail2(res[1]);
 			}
@@ -498,7 +498,7 @@ public class GameService
 		
 		public String getPlayer(int index)
 		{
-		   return index == 0 ? match_.getFirst() : match_.getSecond();
+		   return index == 0 ? match_.first() : match_.second();
 		}
 		
 	}
