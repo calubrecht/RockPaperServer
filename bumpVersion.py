@@ -4,27 +4,25 @@ import json
 import os
 import re
 
-ARTIFACT_ID= 'basePage'
-
 def usage():
     print('Usage: bumpVersion -v NEWVERSION')
     print('       bumpVersion [major|minor|patch|dev}')
     sys.exit(1)
 
+
+versionRE='^version\\s*=\\s\"(.*)\"\\s*'
+
 def getCurrentVersion():
     version = ''
-    onArtifact = False
-    with open('pom.xml') as f:
+    with open('build.gradle.kts') as f:
         for line in f:
-            if onArtifact:
-                match = re.match('\\s*<version>(.*)</version>\\s*', line)
-                if match:
-                    version = match.group(1)
-                    break
-            match = re.match('\\s*<artifactId>' + ARTIFACT_ID + '</artifactId>\\s*', line)
+            match = re.match(versionRE, line)
             if match:
-                onArtifact = True
+                print (line)
+                version = match.group(1)
+                break
     sArray = version.split('.')
+    print(sArray)
     iArray = list(map(lambda s: int(s), sArray))
     if len (iArray) == 4:
         return iArray
@@ -69,21 +67,15 @@ def parseArgs():
 
 
 def updateVersion(newVersion):
-    onArtifact = False
     outLines = []
-    with open('pom.xml') as f:
+    with open('build.gradle.kts') as f:
         for line in f:
-            if onArtifact:
-                match = re.match('\\s*<version>(.*)</version>\\s*', line)
-                if match:
-                    outLines.append('    <version>{0}</version>\n'.format(newVersion))
-                    onArtifact = False
-                    continue
-            outLines.append(line)
-            match = re.match('\\s*<artifactId>' + ARTIFACT_ID + '</artifactId>\\s*', line)
+            match = re.match(versionRE, line)
             if match:
-                onArtifact = True
-    with open('pom.xml', 'w') as fw:
+                outLines.append('version = "{0}"\n'.format(newVersion))
+                continue
+            outLines.append(line)
+    with open('build.gradle.kts', 'w') as fw:
         fw.writelines(outLines)
 
 

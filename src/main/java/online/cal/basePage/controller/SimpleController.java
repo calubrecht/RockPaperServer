@@ -60,10 +60,4 @@ public class SimpleController implements ErrorController
 	  }
 	  return "error";
 	}
-	
-	@Override
-	public String getErrorPath()
-	{
-		return "/error";
-	}
 }

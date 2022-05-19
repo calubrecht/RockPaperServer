@@ -1,5 +1,7 @@
-target/
-dependency-reduced-pom.xml
-log/
-.classpath
+.gradle
 .settings/
+bin/
+build/
+application-local.properties
+log/
+.idea/
