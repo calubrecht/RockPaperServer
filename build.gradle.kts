@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.2.4"
+version = "2.0.2.5"
 
 subprojects {
     configure<JavaPluginExtension> {
@@ -68,6 +68,13 @@ tasks.jacocoTestReport {
     reports {
         xml.required.set(true)
     }
+     classDirectories.setFrom(
+      files(classDirectories.files.map {
+        fileTree(it) {
+           exclude("online/cal/basePage/BasePageApplication.class")
+        }
+     })
+    )  
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
