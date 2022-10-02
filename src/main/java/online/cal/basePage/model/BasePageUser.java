@@ -55,6 +55,7 @@ public class BasePageUser
 		losses_ = u.losses_;
 	}
 	
+	@JsonIgnore
 	public boolean isGuest()
 	{
 		return userName_.startsWith("Guest");
@@ -80,11 +81,6 @@ public class BasePageUser
 	public String getPasswordSalt()
 	{
 		return saltString_;
-	}
-	
-	public void setPassword(String password)
-	{
-		passwordHash_ = password;
 	}
 	
 	public String getColor()

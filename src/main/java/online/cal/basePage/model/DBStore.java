@@ -4,6 +4,7 @@ import javax.annotation.*;
 
 import org.bson.*;
 import org.bson.conversions.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.*;
 
 import com.mongodb.*;
@@ -13,25 +14,23 @@ import com.mongodb.client.*;
 @Component
 public class DBStore
 {
-	static DBStore instance__;
 	MongoClient client_;
 	MongoDatabase db_;
 	
-	public DBStore()
-	{
-		instance__ = this;
-	}
-	
-	public static DBStore getInstance()
-	{
-		return instance__;
-	}
+	@Value("${spring.data.mongodb.port}")
+	String mongoPort;
+
+	@Value("${spring.data.mongodb.database}")
+	String dbName;
+
+	@Value("${spring.data.mongodb.host")
+	String mongoHost;
 	
 	@PostConstruct
 	public void init()
 	{
-		client_ = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-		db_ = client_.getDatabase("rockP");
+		client_ = new MongoClient(new MongoClientURI("mongodb://" + mongoHost + ":" + mongoPort));
+		db_ = client_.getDatabase(dbName);
 	}
 	
 	public MongoCollection<Document> getCollection(String s)

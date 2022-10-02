@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.2.7"
+version = "2.0.2.8"
 
 subprojects {
     configure<JavaPluginExtension> {
@@ -44,6 +44,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation ("junit:junit")
+    testImplementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
     testRuntimeOnly ("org.junit.vintage:junit-vintage-engine")
 }
 

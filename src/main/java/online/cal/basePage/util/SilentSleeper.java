@@ -6,7 +6,7 @@ public class SilentSleeper {
 		try {
 			Thread.sleep(millis);
 		} catch (InterruptedException e) {
-			//  Who cares?
+			Thread.currentThread().interrupt();
 		}
 		
 	}

@@ -64,6 +64,7 @@ public class GameService
 	public void shutdown() throws InterruptedException
 	{
 		running_ = false;
+		matchThread_.interrupt();
 		matchThread_.join();
 	}
 	

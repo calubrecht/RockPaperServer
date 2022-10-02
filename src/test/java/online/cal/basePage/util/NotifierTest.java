@@ -7,8 +7,9 @@ import org.junit.*;
 public class NotifierTest
 {
 
-	@Test
-	@Ignore // Ignore. The point of the Notifier object is to prevent the need to wait, to speed up tests.
+	// No need to run test, because GameService uses this and test shows it's working
+	//@Test
+	//@Ignore // Ignore. The point of the Notifier object is to prevent the need to wait, to speed up tests.
 	public void testNotifier() throws InterruptedException
 	{
 		Notifier notify = new Notifier();
