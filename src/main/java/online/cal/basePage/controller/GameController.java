@@ -55,10 +55,9 @@ public class GameController
 			gameService_.cancelGame(id);
 		} catch (InvalidActionException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return new GameMessage(id, "canceled", "Game already canceled", new Pair<String>(p.getName(), p.getName()));
 		}
-		return new GameMessage("id", "canceled", "", new Pair<String>(p.getName(), p.getName()));
+		return new GameMessage(id, "canceled", "", new Pair<String>(p.getName(), p.getName()));
 			
 	}
 	
@@ -66,7 +65,11 @@ public class GameController
 	public GameMessage invite(Principal p, @RequestBody GameMessage gm)
 	{
 		String[] players = gm.getPlayers();
-		if (players == null || !players[0].equals(p.getName()) || players[1].equals(p.getName()))
+		if (players == null)
+		{
+			return new GameMessage("", "error", "Invalid players list", null);
+		}
+		if (!players[0].equals(p.getName()) || players[1].equals(p.getName()))
 		{
 			return new GameMessage("", "error", "Invalid players list", new Pair<String>(players[0], players[1]));
 		}

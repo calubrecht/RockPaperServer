@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.2.5"
+version = "2.0.2.6"
 
 subprojects {
     configure<JavaPluginExtension> {
@@ -42,6 +42,7 @@ dependencies {
 	}
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation ("junit:junit")
     testRuntimeOnly ("org.junit.vintage:junit-vintage-engine")
 }
@@ -71,7 +72,7 @@ tasks.jacocoTestReport {
      classDirectories.setFrom(
       files(classDirectories.files.map {
         fileTree(it) {
-           exclude("online/cal/basePage/BasePageApplication.class")
+           exclude("online/cal/basePage/BasePageApplication.class","oneline/cal/basePage/util/SilentSleeper.class")
         }
      })
     )  

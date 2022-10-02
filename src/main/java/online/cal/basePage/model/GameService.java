@@ -45,28 +45,17 @@ public class GameService
 	  // Game Seekers queue
 	  matchThread_ =  new Thread() {
 		  public void run() {
-		    while (running_)
-		    {
+				while (running_) {
+					Pair<String> match = matchPlayers();
+					if (match == null) {
+						notifier_.notifyWaiters();
+						SilentSleeper.sleep(threadPollTime_);
 
-		    	Pair<String> match = matchPlayers();
-		    	if (match == null)
-		    	{
-		    		try
-					{
-		    	    	notifier_.notifyWaiters();
-						Thread.sleep(threadPollTime_);
-					} catch (InterruptedException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} else {
+						startGameAndNotify(match);
+						notifier_.notifyWaiters();
 					}
-		    	}
-		    	else
-		    	{
-		    		startGameAndNotify	(match);
-			    	notifier_.notifyWaiters();
-		    	}
-		    }
+				}
 	  }};
 	  matchThread_.start();
 	}
@@ -159,10 +148,7 @@ public class GameService
 		gm.setDeliverTo(new String[] {invitedGame.first()});
 		fireListeners(gm);
 		invitations_.remove(id);
-		if (invitedGame != null)
-		{
-			startGame(id, invitedGame);
-		}
+		startGame(id, invitedGame);
 	}
 	
 	public void resendActive(String id)

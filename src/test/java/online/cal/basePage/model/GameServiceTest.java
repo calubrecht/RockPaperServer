@@ -359,6 +359,11 @@ public class GameServiceTest implements GameListener
 		assertEquals(1, lastMessage_.getRound());
 		assertEquals(null, lastMessage_.choices_[0]);
 		assertEquals("spock", lastMessage_.choices_[1]);
+
+		clearMessages();
+		// Player has no active game
+		service_.resendActive("inactivePlayer");
+		assertEquals(null, lastMessage_);
 	}
 	
 	@Test

@@ -38,6 +38,10 @@ public class GameMessage
 		}
 	}
 
+	public GameMessage() {
+
+	}
+
 	@JsonProperty("players")
 	public String[] getPlayers()
 	{
