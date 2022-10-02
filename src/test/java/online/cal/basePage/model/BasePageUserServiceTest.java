@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import java.security.*;
 import java.security.spec.*;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,6 +40,9 @@ public class BasePageUserServiceTest
 	@Mock
 	WebSecurityConfig securityService_;
 	
+	@Mock
+	JwtUtils jwtUtils;
+
 	@After
 	public void tearDown()
 	{
@@ -48,14 +52,14 @@ public class BasePageUserServiceTest
 	@BeforeClass
 	public static void prepare()
 	{
-		BasePageUserService.INSTANCE = null;		
+		BasePageUserService.INSTANCE = null;
 	}
 
 	@Test
 	public void testRegister()
 	{
-		// Do nothing token generator to mock out JwtUtils.generateToken
-		underTest_.tokenGenerator_ = userName -> userName;
+		when(jwtUtils.generateToken(anyString())).thenReturn("token");
+		underTest_.jwtUtils_ = jwtUtils;
 		BasePageUser user = new BasePageUser("FakeUser", "FakePass");
 		user.setColor("puce");
 		underTest_.register(user);
@@ -94,6 +98,21 @@ public class BasePageUserServiceTest
 		{
 			// expected
 		}
+
+		BasePageUser badPWUser = new BasePageUser("BadUser", null);
+		try
+		{
+			underTest_.register(badPWUser);
+			fail("Should not be able to register user with existing name");
+		} catch (BPUAuthenticationException e)
+		{
+			// expected
+		}
+	}
+
+	@Test
+	public void testGetNonExistuser() {
+		assertEquals(null, underTest_.getUser("ThisUserDoesn'tEvenExist"));
 	}
 	
 	@Test
@@ -116,6 +135,12 @@ public class BasePageUserServiceTest
 		// Already connected, no message.
 		assertEquals(1, msgCaptor.getAllValues().size());
 		assertEquals("Franklin", userMsgs.get(1).getUserName());
+
+		underTest_.userStatuses_.put("Jacob", "DISCONNECTED");
+		underTest_.onConnect("Jacob", null);
+	    verify(chatStore_, times(2)).sendSystemMessage(msgCaptor.capture());
+
+		assertEquals("Jacob has joined.", msgCaptor.getValue());
 	}
 	
 	@Test
@@ -138,7 +163,7 @@ public class BasePageUserServiceTest
 	}
 	
 	@Test
-	public void testOnDisconnect()
+	public void testOnDisconnect() throws InterruptedException
 	{
 		underTest_.users_.put("Bob", new BasePageUser("Bob", null));
 		underTest_.users_.put("Jo",  new BasePageUser("JO", null));
@@ -161,6 +186,15 @@ public class BasePageUserServiceTest
 		underTest_.checkDisconnect("Jo", null);
 		assertEquals("CONNECTED", underTest_.userStatuses_.get("Jo"));
 		verify(chatStore_, times(1)).sendSystemMessage(any());
+
+		// onDisconnect calls onDisconnect after configured time
+		int oldDisconnect = underTest_.disconnectWait;
+		underTest_.disconnectWait = 5;
+		underTest_.onConnect("Bradley",  null);
+		underTest_.onDisconnect("Bradley", null);
+		underTest_.disconnectWait = oldDisconnect;
+		Thread.sleep(10);
+		assertEquals("DISCONNECTED", underTest_.userStatuses_.get("Bradley"));
 	}
 	
 	@Test

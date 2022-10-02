@@ -36,10 +36,10 @@ public class BasePageUserService
 	@Autowired
 	JwtUtils jwtUtils_;
 	
-	Function<String, String> tokenGenerator_ = userName -> jwtUtils_.generateToken(userName);
-
 	int guestCount = 0;
-	
+
+	int disconnectWait = 2000;
+
 	public BasePageUserService(DBStore dbStore, ChatStore chatStore)
 	{
 		dbStore_ = dbStore;
@@ -94,7 +94,7 @@ public class BasePageUserService
 			
 			
 			users_.put(userName,  newUser);
-			String tok = tokenGenerator_.apply(userName);
+			String tok = jwtUtils_.generateToken(userName);
 			return new UserMessage(userName, tok);
 			
 		}
@@ -117,10 +117,6 @@ public class BasePageUserService
 	
 	private void storeUser(BasePageUser user)
 	{
-		if (user.isGuest())
-		{
-			return;
-		}
 		Document doc = new Document();
 		doc.put("userName", user.getUserName());
 		doc.put("color", user.getColor());
@@ -274,7 +270,7 @@ public class BasePageUserService
 				checkDisconnect(userName, clientSessionID);
 
 			}
-		}, 2000);
+		}, disconnectWait);
 
 	}
 
