@@ -30,6 +30,7 @@ import online.cal.basePage.WebSecurityConfig;
 import online.cal.basePage.model.GameMessage;
 import online.cal.basePage.model.GameService;
 import online.cal.basePage.model.Pair;
+import online.cal.basePage.testUtil.DeadStupidPrincipal;
 
 @WebMvcTest(controllers = GameController.class, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfig.class))
 
@@ -169,29 +170,6 @@ public class GameControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(content().json("{\"id\":\"\", \"action\":\"ok\", \"detail\":\"\"}"));
 		verify(gameService_, times(1)).acceptInvite("acceptThis");
-	}
-
-	public static class DeadStupidPrincipal implements Principal {
-		String name;
-
-		public DeadStupidPrincipal(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String getName() {
-			// TODO Auto-generated method stub
-			return name;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (o == null || !(o instanceof DeadStupidPrincipal)) {
-				return false;
-			}
-			return name.equals(((DeadStupidPrincipal) o).name);
-		}
-
 	}
 
 }

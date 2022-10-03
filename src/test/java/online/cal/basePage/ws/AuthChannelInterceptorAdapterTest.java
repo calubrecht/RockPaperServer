@@ -34,7 +34,7 @@ import online.cal.basePage.JwtUtils;
 import online.cal.basePage.model.BasePageUserService;
 
 @SpringBootTest(classes = { AuthChannelInterceptorAdapter.class })
-@ActiveProfiles({ "replica", "test" })
+@ActiveProfiles({ "test" })
 public class AuthChannelInterceptorAdapterTest {
 	@Autowired
 	AuthChannelInterceptorAdapter underTest;
