@@ -68,8 +68,8 @@ public class BasePageUserService
 				u.setLosses(losses);
 			}
 			users_.put(name, u);
-			logger_.info("Initialied known users - " + users_.keySet());
 		}
+		logger_.info("Initialized known users - " + users_.keySet());
 	}
 
 	public UserMessage register(BasePageUser user)

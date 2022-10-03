@@ -32,7 +32,7 @@ public class BasePageAuthManager implements AuthenticationManager
 		BasePageUser user = userService_.getUser(token.getName());
 		if (user == null || !user.isGuest() && !user.validatePassword((String) token.getCredentials()))
 		{
-			logger.error("Bad password for " + token.getName() + " - " + user);
+			logger.warn("Bad password for " + token.getName() + " - " + user);
 			throw new BadCredentialsException("Invalid authentication");
 		}
 		
