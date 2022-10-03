@@ -2,6 +2,8 @@ package online.cal.basePage;
 
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;
@@ -13,6 +15,7 @@ import online.cal.basePage.model.*;
 @Configuration
 public class BasePageAuthManager implements AuthenticationManager
 {
+    Logger logger = LoggerFactory.getLogger(getClass());
 	@Autowired
 	BasePageUserService userService_;
 	
@@ -29,6 +32,7 @@ public class BasePageAuthManager implements AuthenticationManager
 		BasePageUser user = userService_.getUser(token.getName());
 		if (user == null || !user.isGuest() && !user.validatePassword((String) token.getCredentials()))
 		{
+			logger.error("Bad password for " + user);
 			throw new BadCredentialsException("Invalid authentication");
 		}
 		
