@@ -160,4 +160,16 @@ public class ChatStoreTest
 		assertEquals("Not Too Old", msgs.get(0).getChatText());
 		assertEquals("Old but who careas", msgs.get(1).getChatText());
 	}
+
+	@Test
+	public void testChatMessage() {
+		ChatMessage cm = new ChatMessage();
+		cm.setChatText("Hallo");
+		cm.setMsgID(5l);
+		cm.setUserName("Matt");
+
+		assertEquals("Hallo", cm.getChatText());
+		assertEquals(5l, cm.getMsgID());
+		assertEquals("Matt", cm.getUserName());
+	}
 }

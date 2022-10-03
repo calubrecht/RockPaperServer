@@ -58,7 +58,7 @@ public class SessionController
 		 SecurityContextHolder.clearContext();
 		 
 		 HttpHeaders headers = new HttpHeaders();
-		 headers.add("Set-Cookie","platform=mobile; Max-Age=604800; Path=/; Secure; HttpOnly");
+		 headers.add("Set-Cookie", "JSESSIONID=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly");
 		 return ResponseEntity.status(HttpStatus.OK).headers(headers).body(new UserMessage("", ""));
       }
       catch (AuthenticationException ae)
