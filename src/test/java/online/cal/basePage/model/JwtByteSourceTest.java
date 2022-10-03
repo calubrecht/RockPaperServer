@@ -71,4 +71,31 @@ public class JwtByteSourceTest
 		verify(collection, times(1)).insertOne(any());
 		verify(collection, times(1)).deleteMany(any());
 	}
+
+	@Test
+	public void testGetBytesNoDate() {
+		MongoCollection<Document> collection = Mockito.mock(MongoCollection.class);
+		when(dbStore.getCollection(anyString())).thenReturn(collection);
+		when(dbStore.findOne(anyString(), any())).thenReturn(makeDoc("rO15R/HLqAh9c6ani4BLgPOv7+JZ", null));
+
+		byte[] bytes = underTest.getBytes();
+		assertNotEquals(null, bytes);
+		assertEquals(21, bytes.length);
+		verify(collection, times(1)).insertOne(any());
+		verify(collection, times(1)).deleteMany(any());
+	}
+
+	@Test
+	public void testGetBytesNoSecrets() {
+		MongoCollection<Document> collection = Mockito.mock(MongoCollection.class);
+		when(dbStore.getCollection(anyString())).thenReturn(collection);
+		// when(dbStore.findOne(anyString(),
+		// any())).thenReturn(makeDoc("rO15R/HLqAh9c6ani4BLgPOv7+JZ", null));
+
+		byte[] bytes = underTest.getBytes();
+		assertNotEquals(null, bytes);
+		assertEquals(21, bytes.length);
+		verify(collection, times(1)).insertOne(any());
+		verify(collection, times(1)).deleteMany(any());
+	}
 }

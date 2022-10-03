@@ -74,7 +74,8 @@ tasks.jacocoTestReport {
      classDirectories.setFrom(
       files(classDirectories.files.map {
         fileTree(it) {
-           exclude("online/cal/basePage/BasePageApplication.class","online/cal/basePage/util/SilentSleeper.class")
+           exclude("online/cal/basePage/BasePageApplication.class","online/cal/basePage/util/SilentSleeper.class",
+           "online/cal/basePage/WebSecurityConfig.class")
         }
      })
     )  
