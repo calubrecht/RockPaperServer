@@ -18,6 +18,7 @@ public class ChatStore
 	@Autowired
 	DBStore dbStore_;
 	long pollTime = 60000;
+	Timer systemMsgTimer_;
 	
 	public ChatStore()
 	{
@@ -29,8 +30,8 @@ public class ChatStore
 	{
 	   loadDBMessages();
 	   
-	   Timer t = new Timer();
-	   t.schedule(new TimerTask() {
+	   systemMsgTimer_ = new Timer();
+	   systemMsgTimer_.schedule(new TimerTask() {
 
 		@Override
 		public void run()

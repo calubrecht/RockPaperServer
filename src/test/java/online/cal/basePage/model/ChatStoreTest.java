@@ -99,6 +99,32 @@ public class ChatStoreTest
 	}
 	
 	@Test
+	public void testInit() throws InterruptedException {
+		store_.pollTime = 10; // Stupid fast
+		@SuppressWarnings("unchecked")
+		FindIterable<Document> find = Mockito.mock(FindIterable.class);
+		when(collection.find()).thenReturn(find);
+		when(find.sort(any())).thenReturn(find);
+		when(find.limit(anyInt())).thenReturn(find);
+		Iterator<Document> itr = Collections.emptyIterator();
+		@SuppressWarnings("unchecked")
+		MongoCursor<Document> cursor = Mockito.mock(MongoCursor.class);
+		when(find.iterator()).thenReturn(cursor);
+		when(cursor.hasNext()).thenAnswer(i -> itr.hasNext());
+
+		store_.init();
+		verify(dbStore, times(1)).getCollection(any());
+
+		ChatMessage oldSystemMessage = new ChatMessage(ChatMessage.SYSTEM, "Too Old");
+		Date sixtyTwoMinutesAgo = Date.from(new Date().toInstant().minus(62, ChronoUnit.MINUTES));
+		oldSystemMessage.dt_ = sixtyTwoMinutesAgo;
+		store_.addChat(oldSystemMessage);
+		Thread.sleep(25);
+		List<ChatMessage> msgs = store_.getChatMessages();
+		assertEquals(0, msgs.size());
+	}
+
+	@Test
 	public void testGetChatMessagesSince()
 	{
 	  store_.addChat(new ChatMessage("Frank", "MEssage1"));

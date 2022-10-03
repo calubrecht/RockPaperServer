@@ -60,7 +60,7 @@ public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFi
 		return authRequest;
 	}
 	
-	private static class JsonSuccessHandler implements AuthenticationSuccessHandler
+	protected static class JsonSuccessHandler implements AuthenticationSuccessHandler
 	{
 		JwtUtils jwtUtils;
 		
