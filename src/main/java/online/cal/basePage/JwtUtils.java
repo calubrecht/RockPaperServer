@@ -31,7 +31,7 @@ public class JwtUtils
 
 	private static final long TOKEN_LENGTH = 60 * 60;
 
-	private Algorithm getAlgo()
+	public Algorithm getAlgo()
 	{
 		if (ALGO == null)
 		{

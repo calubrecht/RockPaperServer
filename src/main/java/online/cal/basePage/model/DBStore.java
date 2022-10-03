@@ -23,7 +23,7 @@ public class DBStore
 	@Value("${spring.data.mongodb.database}")
 	String dbName;
 
-	@Value("${spring.data.mongodb.host")
+	@Value("${spring.data.mongodb.host}")
 	String mongoHost;
 	
 	@PostConstruct

@@ -60,7 +60,7 @@ public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
 	    	    		"WS connect from user " + userName  + "-" + clientSessionID + "-" + accessor.getSessionId()
 	    	    		+" on " +
 	    	    		accessor.getNativeHeader("destination") + "-" + accessor.getHeader("lookupDestination"));
-			} catch (TokenExpiredException tee)
+			} catch (AuthenticationException tee)
 			{
 				// Bad auth token, refuse connection
             	return null;
