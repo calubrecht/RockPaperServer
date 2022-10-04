@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.2.13"
+version = "2.0.2.14"
 
 subprojects {
     configure<JavaPluginExtension> {
@@ -75,7 +75,7 @@ tasks.jacocoTestReport {
       files(classDirectories.files.map {
         fileTree(it) {
            exclude("online/cal/basePage/BasePageApplication.class","online/cal/basePage/util/SilentSleeper.class",
-           "online/cal/basePage/WebSecurityConfig.class")
+           "online/cal/basePage/WebSecurityConfig.class", "online/cal/basePage/ws/WebSocketConfig.class")
         }
      })
     )  
