@@ -2,6 +2,7 @@ package online.cal.basePage.model;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 import java.time.temporal.*;
@@ -119,9 +120,14 @@ public class ChatStoreTest
 		Date sixtyTwoMinutesAgo = Date.from(new Date().toInstant().minus(62, ChronoUnit.MINUTES));
 		oldSystemMessage.dt_ = sixtyTwoMinutesAgo;
 		store_.addChat(oldSystemMessage);
-		Thread.sleep(25);
-		List<ChatMessage> msgs = store_.getChatMessages();
-		assertEquals(0, msgs.size());
+		for (int counter = 0; counter < 50; counter++) {
+			Thread.sleep(10);
+			List<ChatMessage> msgs = store_.getChatMessages();
+			if (msgs.size() == 0) {
+				return;
+			}
+		}
+		fail("ChatStore did not clean up old system messages in .5s");
 	}
 
 	@Test

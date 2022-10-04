@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.3"
+version = "2.0.3.1"
 
 subprojects {
     configure<JavaPluginExtension> {
