@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "online.C-A-L"
-version = "2.0.3.1"
+version = "2.0.3.2"
 
 subprojects {
     configure<JavaPluginExtension> {
@@ -55,10 +55,15 @@ tasks.processResources {
     }
 }
 
-tasks.bootWar {
+tasks.war {
 	manifest {
 		attributes("Implementation-Version" to archiveVersion)
 	}
+	archiveClassifier.set("")
+}
+
+tasks.bootWar {
+  enabled=false
 }
 
 tasks.test{
