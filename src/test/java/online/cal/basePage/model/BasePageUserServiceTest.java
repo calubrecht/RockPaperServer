@@ -179,6 +179,9 @@ public class BasePageUserServiceTest
 		ArgumentCaptor<String> msgCaptor = ArgumentCaptor.forClass(String.class);
 		verify(chatStore_, times(1)).sendSystemMessage(msgCaptor.capture());
 		assertEquals("Bob has left.", msgCaptor.getValue());
+		underTest_.checkDisconnect("Bob", null);
+		// Not called again
+		verify(chatStore_, times(1)).sendSystemMessage(msgCaptor.capture());
 		
 		underTest_.userStatuses_.put("Jo", "CONNECTED");
 		underTest_.onDisconnect("Jo",  null);

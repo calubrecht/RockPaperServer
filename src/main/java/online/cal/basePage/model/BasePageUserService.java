@@ -257,7 +257,7 @@ public class BasePageUserService
 
 	public synchronized void onDisconnect(String userName, String clientSessionID)
 	{
-		if (userStatuses_.get(userName).equals("DISCONNECTING"))
+		if (userStatuses_.get(userName).equals("DISCONNECTING") )
 		{
 			return;
 		}
@@ -279,7 +279,7 @@ public class BasePageUserService
 	public synchronized void checkDisconnect(String userName, String clientSessionID)
 	{
 		String currStatus = userStatuses_.get(userName);
-		if (!currStatus.equals("CONNECTED"))
+		if (!(currStatus.equals("CONNECTED") || userStatuses_.get(userName).equals("DISCONNECTED")))
 		{
 			userStatuses_.put(userName, "DISCONNECTED");
 			chatStore_.sendSystemMessage(userName + " has left.");
